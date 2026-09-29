@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "ru.moneygotchi.app"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
