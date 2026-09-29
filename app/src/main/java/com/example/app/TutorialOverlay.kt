@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -30,7 +30,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.runtime.*
 import androidx.compose.runtime.LaunchedEffect
 
 // ОБУЧАЮЩЕЕ МЕНЮ

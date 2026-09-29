@@ -1,7 +1,6 @@
-package com.example.myapplication
+package com.example.app
 
 import android.content.Context
-import org.json.JSONArray
 import org.json.JSONObject
 
 // МОДЕЛИ

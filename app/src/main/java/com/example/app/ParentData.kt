@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 data class ParentMetric(
     val label: String,

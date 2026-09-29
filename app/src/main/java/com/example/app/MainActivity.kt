@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

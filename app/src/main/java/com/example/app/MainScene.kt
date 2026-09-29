@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image

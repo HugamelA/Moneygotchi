@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas

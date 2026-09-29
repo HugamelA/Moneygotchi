@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

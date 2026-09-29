@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.app
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
