@@ -1,0 +1,202 @@
+{
+  "version": "4.0",
+  "rules": {
+    "everyNDays": 3,
+    "demoOrderFixed": true,
+    "demoDays": [
+      2,
+      4,
+      6,
+      8,
+      10
+    ],
+    "shuffleOutsideDemo": true,
+    "noHarmToPet": true,
+    "maxIncome": 20,
+    "maxExpense": 25
+  },
+  "events": [
+    {
+      "id": "grandma_gift",
+      "order": 1,
+      "demoDay": 2,
+      "repeatable": false,
+      "title": "Подарок от бабушки",
+      "type": "income",
+      "text": "Бабушка прислала {petDat} подарок — 20 монет!",
+      "effects": {
+        "balance": 20
+      },
+      "petReply": "Подарок — это тоже доход. Куда их направим?",
+      "explanation": "Подарок можно потратить или отложить, как и карманные деньги.",
+      "linkedTask": "T2",
+      "options": null
+    },
+    {
+      "id": "food_sale",
+      "order": 2,
+      "demoDay": 4,
+      "repeatable": true,
+      "cooldownDays": 10,
+      "weight": 1,
+      "title": "Скидка на корм",
+      "type": "price",
+      "text": "В лавке скидка: средний корм стоит 15 монет вместо 20, большой — 25 вместо 30.",
+      "effects": {
+        "priceOverride": {
+          "feed_medium": 15,
+          "feed_large": 25
+        },
+        "durationDays": 1
+      },
+      "petReply": "Сегодня корм дешевле. Хороший момент купить!",
+      "explanation": "Когда нужное дешевеет, на другое остаётся больше монет.",
+      "linkedTask": null,
+      "options": null
+    },
+    {
+      "id": "scratch",
+      "order": 3,
+      "demoDay": 6,
+      "repeatable": false,
+      "title": "Поцарапанная лапка",
+      "type": "choice",
+      "text": "{petNom} поцарапал лапку, когда играл. Доктор поможет за 20 монет. Откуда заплатим?",
+      "effects": {},
+      "petReply": "Чуть-чуть щиплет, но я в порядке.",
+      "explanation": "Неожиданные расходы случаются. Хорошо, когда есть свободные монеты.",
+      "linkedTask": null,
+      "options": [
+        {
+          "id": "a",
+          "text": "Взять из копилки",
+          "verdict": "less_favorable",
+          "requires": {
+            "savings": 20
+          },
+          "confirm": "withdraw",
+          "effects": {
+            "savings": -20,
+            "factNeeds": 20,
+            "purchase": "doctor"
+          },
+          "petReply": "Лапка зажила! Правда, до цели теперь дальше.",
+          "explanation": "Копилкой можно воспользоваться, если очень нужно. Но цель отодвигается."
+        },
+        {
+          "id": "b",
+          "text": "Заплатить из кошелька",
+          "verdict": "recommended",
+          "requires": {
+            "balance": 20
+          },
+          "effects": {
+            "balance": -20,
+            "factNeeds": 20,
+            "purchase": "doctor"
+          },
+          "petReply": "Спасибо! Лапка не болит, а копилка цела.",
+          "explanation": "Свободные монеты выручают при неожиданном расходе, и мечта не отодвигается."
+        }
+      ],
+      "fallback": {
+        "petReply": "Лапка чуть-чуть побаливает, но это не страшно. Когда появятся монеты, сходим к доктору.",
+        "retryNextDay": true
+      }
+    },
+    {
+      "id": "friend_birthday",
+      "order": 4,
+      "demoDay": 8,
+      "repeatable": false,
+      "title": "День рождения друга",
+      "type": "choice",
+      "text": "У Пушка день рождения. Подарок в магазине стоит 25 монет. Что сделаем?",
+      "effects": {},
+      "petReply": "Пушок будет рад нам в любом случае.",
+      "explanation": "Подарок — необязательный расход: его можно заменить.",
+      "linkedTask": null,
+      "options": [
+        {
+          "id": "a",
+          "text": "Купить подарок за 25",
+          "verdict": "acceptable",
+          "requires": {
+            "balance": 25
+          },
+          "effects": {
+            "balance": -25,
+            "mood": 20,
+            "factWants": 25,
+            "purchase": "gift"
+          },
+          "petReply": "Пушок в восторге от подарка!",
+          "explanation": "Приятные траты тоже часть плана, если на нужное хватает."
+        },
+        {
+          "id": "b",
+          "text": "Сделать открытку своими руками",
+          "verdict": "acceptable",
+          "effects": {
+            "mood": 10
+          },
+          "petReply": "Открытка получилась тёплая, Пушок повесил её на стену!",
+          "explanation": "Порадовать друга можно и без трат."
+        }
+      ]
+    },
+    {
+      "id": "help_neighbour",
+      "order": 5,
+      "demoDay": 10,
+      "repeatable": true,
+      "cooldownDays": 14,
+      "weight": 2,
+      "title": "Помощь соседу",
+      "type": "income",
+      "text": "Сосед просит помочь донести покупки. За помощь он даст 15 монет.",
+      "effects": {
+        "balance": 15
+      },
+      "petReply": "Помогли и заработали!",
+      "explanation": "Доход можно не только получать, но и зарабатывать.",
+      "linkedTask": null,
+      "options": null
+    },
+    {
+      "id": "found_coin",
+      "order": 6,
+      "demoDay": null,
+      "repeatable": true,
+      "cooldownDays": 6,
+      "title": "Находка",
+      "type": "income",
+      "text": "{petNom} нашёл под ковриком 5 монет.",
+      "effects": {
+        "balance": 5
+      },
+      "petReply": "Смотри, что я нашёл!",
+      "explanation": "Маленький доход — тоже доход, его стоит учесть в плане.",
+      "linkedTask": null,
+      "options": null
+    },
+    {
+      "id": "muddy_puddle",
+      "order": 7,
+      "demoDay": null,
+      "repeatable": true,
+      "cooldownDays": 7,
+      "weight": 1,
+      "title": "Лужа во дворе",
+      "type": "state",
+      "text": "{petNom} прыгал по лужам и весь испачкался.",
+      "effects": {
+        "mood": -10
+      },
+      "petReply": "Было весело! Но теперь мне неуютно.",
+      "explanation": "Мыло или шампунь снова поднимут настроение.",
+      "linkedTask": null,
+      "options": null
+    }
+  ]
+}

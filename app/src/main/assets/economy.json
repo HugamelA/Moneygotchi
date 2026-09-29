@@ -1,0 +1,119 @@
+{
+  "version": "2.0",
+  "_comment": "Единственный источник правды по балансу. Все числа игры меняются здесь.",
+
+  "start": {
+    "coins": 40,
+    "satiety": 80,
+    "mood": 80,
+    "maxStat": 100,
+    "_comment": "Питомец начинает не полным: ребёнку сразу есть что сделать, но кризиса нет."
+  },
+
+  "day": {
+    "sleepIncome": {
+      "base": 15,
+      "bonusFed": 10,
+      "bonusHappy": 10,
+      "careThreshold": 50,
+      "max": 35,
+      "_comment": "База выплачивается всегда, поэтому из любой ситуации есть выход. Бонусы — за заботу."
+    },
+    "decay": {
+      "satiety": 16,
+      "mood": 12,
+      "_comment": "Списывается во сне, после начисления дохода."
+    },
+    "hungerAffectsMood": {
+      "decayK": 0.5,
+      "gainK": 0.15,
+      "threshold": 50,
+      "decayFormula": "moodDecay = decay.mood * (1 + decayK * max(0, threshold - satiety) / threshold)",
+      "gainFormula": "moodGain  = effect  * (1 - gainK  * max(0, threshold - satiety) / threshold)",
+      "_comment": "Голодный питомец грустит быстрее и хуже радуется."
+    },
+    "eventEveryNDays": 3,
+    "_comment_events": "Пока события не реализованы. Раздел задел на будущее."
+  },
+
+  "stars": {
+    "perDay": [
+      {
+        "id": "fed",
+        "text": "Питомец сыт",
+        "condition": "satiety >= 50 при засыпании",
+        "stars": 1
+      },
+      {
+        "id": "happy",
+        "text": "Питомец доволен",
+        "condition": "mood >= 50 при засыпании",
+        "stars": 1
+      },
+      {
+        "id": "saved",
+        "text": "Отложено в копилку",
+        "condition": "сумма за день > 0",
+        "stars": 1
+      }
+    ],
+    "goalBonus": 3,
+    "maxPerDay": 3,
+    "neverDecrease": true,
+    "_comment": "Звёзды дают только финансовые решения. Задания, покупки и мини-игры звёзд не дают."
+  },
+
+  "levels": {
+    "thresholds": [0, 2, 5, 9, 14, 20, 27, 35, 44, 54],
+    "stepAfterLast": 20,
+    "stages": [
+      { "id": "baby",  "name": "малыш",     "fromLevel": 1 },
+      { "id": "teen",  "name": "подросток", "fromLevel": 4 },
+      { "id": "adult", "name": "взрослый",  "fromLevel": 7 }
+    ],
+    "_comment": "В профиле хранится только число звёзд. Уровень и стадия вычисляются по порогам."
+  },
+
+  "goals": [
+    {
+      "productId": "special_bed",
+      "price": 80,
+      "expectedDay": 3,
+      "role": "комфорт: экономит монеты"
+    },
+    {
+      "productId": "special_telescope",
+      "price": 250,
+      "expectedDay": 21,
+      "role": "вложение: приносит доход"
+    },
+    {
+      "productId": "special_console",
+      "price": 350,
+      "expectedDay": 38,
+      "role": "роскошь: только радость"
+    }
+  ],
+
+  "tasksUnlock": {
+    "perBatch": 2,
+    "everyNDays": 7,
+    "_comment": "Открываем по 2 задания каждые 7 дней. Соответствует unlockDay в tasks.json: батч 1 → дни 1–7, батч 2 → дни 8–14, батч 3 → дни 15–21. Само количество и порядок заданий задаётся в tasks.json."
+  },
+
+  "tasksRules": {
+    "paidOnce": true,
+    "moodForCompletion": 10,
+    "givesStars": false,
+    "_comment": "Награда за задание выдаётся один раз. Задания не дают звёзд — звёзды только за финансовые решения (см. stars)."
+  },
+
+  "envelopes": {
+    "_comment": "СПРАВОЧНИК. Код читает paymentSource напрямую из shop.json, этот раздел не используется в игре. Оставлен для наглядности баланса.",
+    "list": [
+      { "id": "needs",   "name": "Еда и уход", "categories": ["food", "care"] },
+      { "id": "wants",   "name": "Приятности", "categories": ["treats", "toys"] },
+      { "id": "savings", "name": "Копилка",    "categories": ["special"] }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "version": "2.0",
+  "categories": [
+    { "id": "food",    "name": "Еда",           "emoji": "", "paymentSource": "needs",
+      "description": "Необходимые товары для питомца." },
+    { "id": "care",    "name": "Уход",          "emoji": "", "paymentSource": "needs",
+      "description": "Всё для чистоты и ухода за питомцем." },
+    { "id": "treats",  "name": "Лакомства",     "emoji": "", "paymentSource": "wants",
+      "description": "Особые вкусности для питомца." },
+    { "id": "toys",    "name": "Игрушки",       "emoji": "", "paymentSource": "wants",
+      "description": "Всё для игр и веселья." },
+    { "id": "clothes", "name": "Одежда",        "emoji": "", "paymentSource": "wants",
+      "description": "Скоро здесь появятся товары." },
+    { "id": "special", "name": "Особые товары", "emoji": "✨", "paymentSource": "wants",
+      "description": "Товары-мечты. Копи монеты и покупай из копилки." }
+  ],
+  "products": [
+    { "id": "feed_small",  "categoryId": "food", "name": "Корм (маленький)", "nameTemplate": "Корм для {pet} (маленький)", "price": 10, "emoji": "🍖", "hungerEffect": 10, "happinessEffect": 0 },
+    { "id": "feed_medium", "categoryId": "food", "name": "Корм (средний)",   "nameTemplate": "Корм для {pet} (средний)",   "price": 20, "emoji": "🍖", "hungerEffect": 25, "happinessEffect": 0 },
+    { "id": "feed_large",  "categoryId": "food", "name": "Корм (большой)",   "nameTemplate": "Корм для {pet} (большой)",   "price": 30, "emoji": "🍖", "hungerEffect": 45, "happinessEffect": 0 },
+    { "id": "vitamins",    "categoryId": "food", "name": "Витаминки",                                                      "price": 20, "emoji": "💊", "hungerEffect": 15, "happinessEffect": 5 },
+
+    { "id": "treat_dragon_meat",     "categoryId": "treats", "name": "Мясо",           "price": 15, "emoji": "🍖", "hungerEffect":  8, "happinessEffect":  7, "petType": "dragon" },
+    { "id": "treat_dragon_pepper",   "categoryId": "treats", "name": "Жгучий перчик",  "price": 20, "emoji": "🌶️", "hungerEffect": 10, "happinessEffect": 10, "petType": "dragon" },
+    { "id": "treat_dragon_steak",    "categoryId": "treats", "name": "Сочный стейк",   "price": 30, "emoji": "🥩", "hungerEffect": 15, "happinessEffect": 15, "petType": "dragon" },
+
+    { "id": "treat_dog_bone",        "categoryId": "treats", "name": "Косточка",       "price": 15, "emoji": "🦴", "hungerEffect":  8, "happinessEffect":  7, "petType": "dog" },
+    { "id": "treat_dog_sausage",     "categoryId": "treats", "name": "Сосиска",        "price": 20, "emoji": "🌭", "hungerEffect": 10, "happinessEffect": 10, "petType": "dog" },
+    { "id": "treat_dog_cheese",      "categoryId": "treats", "name": "Кусочек сыра",   "price": 30, "emoji": "🧀", "hungerEffect": 15, "happinessEffect": 15, "petType": "dog" },
+
+    { "id": "treat_cat_fish",        "categoryId": "treats", "name": "Рыбка",          "price": 15, "emoji": "🐟", "hungerEffect":  8, "happinessEffect":  7, "petType": "cat" },
+    { "id": "treat_cat_shrimp",      "categoryId": "treats", "name": "Креветка",       "price": 20, "emoji": "🦐", "hungerEffect": 10, "happinessEffect": 10, "petType": "cat" },
+    { "id": "treat_cat_grass",       "categoryId": "treats", "name": "Кошачья травка", "price": 30, "emoji": "🌿", "hungerEffect": 15, "happinessEffect": 15, "petType": "cat" },
+
+    { "id": "treat_turtle_salad",    "categoryId": "treats", "name": "Листик салата",  "price": 15, "emoji": "🥬", "hungerEffect":  8, "happinessEffect":  7, "petType": "turtle" },
+    { "id": "treat_turtle_dande",    "categoryId": "treats", "name": "Одуванчик",      "price": 20, "emoji": "🌼", "hungerEffect": 10, "happinessEffect": 10, "petType": "turtle" },
+    { "id": "treat_turtle_berry",    "categoryId": "treats", "name": "Ягодка",         "price": 30, "emoji": "🍓", "hungerEffect": 15, "happinessEffect": 15, "petType": "turtle" },
+
+    { "id": "treat_penguin_fish",    "categoryId": "treats", "name": "Рыба",           "price": 15, "emoji": "🐟", "hungerEffect":  8, "happinessEffect":  7, "petType": "penguin" },
+    { "id": "treat_penguin_krill",   "categoryId": "treats", "name": "Криль",          "price": 20, "emoji": "🦐", "hungerEffect": 10, "happinessEffect": 10, "petType": "penguin" },
+    { "id": "treat_penguin_octo",    "categoryId": "treats", "name": "Моллюск",        "price": 30, "emoji": "🐙", "hungerEffect": 15, "happinessEffect": 15, "petType": "penguin" },
+
+    { "id": "treat_spider_mosquito", "categoryId": "treats", "name": "Комар",          "price": 15, "emoji": "🦟", "hungerEffect":  8, "happinessEffect":  7, "petType": "spider" },
+    { "id": "treat_spider_fly",      "categoryId": "treats", "name": "Муха",           "price": 20, "emoji": "🪰", "hungerEffect": 10, "happinessEffect": 10, "petType": "spider" },
+    { "id": "treat_spider_worm",     "categoryId": "treats", "name": "Гусеница",       "price": 30, "emoji": "🐛", "hungerEffect": 15, "happinessEffect": 15, "petType": "spider" },
+
+    { "id": "ring",     "categoryId": "toys", "name": "Кольцо",         "price": 15, "emoji": "💍", "hungerEffect": 0, "happinessEffect": 16 },
+    { "id": "plush",    "categoryId": "toys", "name": "Мягкая игрушка", "price": 25, "emoji": "🧸", "hungerEffect": 0, "happinessEffect": 27 },
+    { "id": "ball",     "categoryId": "toys", "name": "Мячик",          "price": 30, "emoji": "⚽", "hungerEffect": 0, "happinessEffect": 33 },
+    { "id": "rope",     "categoryId": "toys", "name": "Канат",          "price": 40, "emoji": "🪢", "hungerEffect": 0, "happinessEffect": 45 },
+
+    { "id": "soap",    "categoryId": "care", "name": "Мыло",     "price": 10, "emoji": "🧼", "hungerEffect": 0, "happinessEffect":  8 },
+    { "id": "brush",   "categoryId": "care", "name": "Расчёска", "price": 15, "emoji": "🪮", "hungerEffect": 0, "happinessEffect": 13 },
+    { "id": "shampoo", "categoryId": "care", "name": "Шампунь",  "price": 20, "emoji": "🧴", "hungerEffect": 0, "happinessEffect": 19 },
+
+    { "id": "special_bed",      "categoryId": "special", "name": "Лежанка для питомца", "price": 80,  "emoji": "🛏️", "hungerEffect": 0, "happinessEffect": 0, "description": "Питомец будет рад этой покупке и станет реже грустить.", "perk": { "moodDecayMult": 0.85, "moodGainMult": 1.15 } },
+    { "id": "special_telescope","categoryId": "special", "name": "Телескоп",             "price": 250, "emoji": "🔭", "hungerEffect": 0, "happinessEffect": 0, "description": "В него можно рассматривать звёзды. Питомец будет в восторге!" },
+    { "id": "special_console",  "categoryId": "special", "name": "Портативная приставка","price": 350, "emoji": "🕹️", "hungerEffect": 0, "happinessEffect": 0, "description": "На ней много интересных игр. Попробуй!" }
+  ]
+}
