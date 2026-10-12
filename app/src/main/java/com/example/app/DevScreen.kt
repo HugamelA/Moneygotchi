@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // РЕЖИМ РАЗРАБОТЧИКА
 @Composable
@@ -53,7 +56,8 @@ fun DevScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(24.dp, vertical = 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

@@ -27,6 +27,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ВСПОМОГАТЕЛЬНОЕ
 @Composable
@@ -58,7 +61,11 @@ fun CartScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F5E9))) {
 
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        ) {
 
             Box(
                 modifier = Modifier

@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @Composable
 fun PiggyScreen(
@@ -82,6 +85,7 @@ fun PiggyScreen(
             shadowElevation = 2.dp,
             modifier = Modifier
                 .align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -99,7 +103,8 @@ fun PiggyScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {

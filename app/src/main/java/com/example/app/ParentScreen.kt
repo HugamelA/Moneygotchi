@@ -16,6 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @Composable
 fun ParentScreen(
@@ -41,6 +44,7 @@ fun ParentScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {

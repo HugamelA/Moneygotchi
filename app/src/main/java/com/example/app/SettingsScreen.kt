@@ -23,6 +23,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 private const val DEBUG_DEV_BUTTON_ALWAYS_ON = false
 
@@ -45,7 +48,8 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(

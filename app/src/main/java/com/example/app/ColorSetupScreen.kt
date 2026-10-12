@@ -27,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ЭКРАН 3: КАРУСЕЛЬ ВАРИАНТОВ
 @Composable
@@ -60,6 +63,7 @@ fun ColorSetupScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -67,7 +71,7 @@ fun ColorSetupScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
                     .background(
                         Color.White.copy(alpha = 0.92f),
                         RoundedCornerShape(20.dp)
@@ -173,7 +177,7 @@ fun ColorSetupScreen(
                 onClick = { showConfirm = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
                     .height(60.dp)
             ) {
                 Text("Подтвердить", fontSize = 22.sp)

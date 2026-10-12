@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ЭКРАН СОЗДАНИя ПИТОМЦА
 @Composable
@@ -58,6 +61,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -65,7 +69,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
                     .background(
                         Color.White.copy(alpha = 0.92f),
                         RoundedCornerShape(20.dp)

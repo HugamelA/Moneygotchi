@@ -21,6 +21,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ЭКРАН ЦЕЛИ
 @Composable
@@ -46,7 +49,11 @@ fun GoalScreen(
     BackHandler { onBack() }
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F5E9))) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        ) {
 
             // Верхняя панель
             Box(
@@ -110,7 +117,7 @@ fun GoalScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
+                        .padding(24.dp, vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Spacer(Modifier.height(16.dp))

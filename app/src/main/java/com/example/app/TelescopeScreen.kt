@@ -28,6 +28,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 private const val CIRCLE_RADIUS_FRACTION = 0.32f
 
@@ -90,6 +93,7 @@ fun TelescopeScreen(onBack: () -> Unit) {
             color = Color.White.copy(alpha = 0.10f),
             modifier = Modifier
                 .align(Alignment.BottomStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
                 .clickable { onBack() }
         ) {

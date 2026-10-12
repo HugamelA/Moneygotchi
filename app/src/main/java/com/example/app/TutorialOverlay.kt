@@ -31,6 +31,9 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ОБУЧАЮЩЕЕ МЕНЮ
 data class TutorialStep(
@@ -248,6 +251,7 @@ fun TutorialOverlay(
                 .align(cardAlignment)
                 .fillMaxWidth()
                 .background(Color(0xFF2C2C2C).copy(alpha = 0.95f), cardShape)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

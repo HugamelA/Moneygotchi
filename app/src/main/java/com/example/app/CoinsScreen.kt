@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @Composable
 fun CoinsScreen(
@@ -92,6 +95,7 @@ fun CoinsScreen(
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
                     .padding(16.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -112,6 +116,7 @@ fun CoinsScreen(
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
                     .padding(top = 62.dp, start = 24.dp, end = 24.dp),
                 shape = RoundedCornerShape(14.dp),
                 color = Color.White.copy(alpha = 0.85f),

@@ -12,6 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 // ЭКРАН ПРИВЕТСТВИЯ
 @Composable
@@ -19,7 +22,8 @@ fun WelcomeScreen(onStart: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

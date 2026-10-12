@@ -34,6 +34,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.platform.LocalDensity
 
 // ПАРАМЕТРЫ
 private const val PLAYER_SIZE = 22f
@@ -59,9 +63,19 @@ fun ConsoleGameScreen(
     var rewardGiven by remember { mutableStateOf(false) }
     var coinsEarned by remember { mutableIntStateOf(0) }
 
-    val gameState = remember(sizePx) {
+    val density = LocalDensity.current
+    val bottomReservedPx = with(density) {
+        WindowInsets.safeDrawing.getBottom(this).toFloat() +
+                90.dp.toPx()
+    }
+
+    val gameState = remember(sizePx, bottomReservedPx) {
         if (sizePx == IntSize.Zero) null
-        else GameState(sizePx.width.toFloat(), sizePx.height.toFloat())
+        else GameState(
+            sizePx.width.toFloat(),
+            sizePx.height.toFloat(),
+            bottomReservedPx
+        )
     }
 
     // Игровой цикл
@@ -109,6 +123,7 @@ fun ConsoleGameScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -150,6 +165,7 @@ fun ConsoleGameScreen(
             color = Color.White.copy(alpha = 0.10f),
             modifier = Modifier
                 .align(Alignment.BottomStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
                 .clickable { onBack() }
         ) {
@@ -202,14 +218,23 @@ fun ConsoleGameScreen(
 }
 
 // СОСТОЯНИЕ ИГРЫ
-private class GameState(val width: Float, val height: Float) {
+private class GameState(
+    val width: Float,
+    val height: Float,
+    private val bottomReservedPx: Float
+) {
 
     var score = 0
         private set
     var gameOver = false
         private set
 
-    val player = Player(width / 2f, height - 180f, hp = 3, maxHp = 3)
+    val player = Player(
+        x = width / 2f,
+        y = height - bottomReservedPx - PLAYER_SIZE,
+        hp = 3,
+        maxHp = 3
+    )
     val bullets = mutableListOf<Bullet>()
     val enemies = mutableListOf<Enemy>()
     val particles = mutableListOf<Particle>()
