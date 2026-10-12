@@ -27,6 +27,22 @@ fun declinePetName(rawName: String, case: GramCase): String {
         }
     }
 
+    val isCyrillicOnly = name.all { ch ->
+        ch in 'А'..'Я' || ch in 'а'..'я' || ch == 'ё' || ch == 'Ё'
+    }
+    if (!isCyrillicOnly) return name
+
+    if (name.length < 2) {
+        return when (case) {
+            GramCase.NOMINATIVE    -> "питомец"
+            GramCase.GENITIVE      -> "питомца"
+            GramCase.DATIVE        -> "питомцу"
+            GramCase.ACCUSATIVE    -> "питомца"
+            GramCase.INSTRUMENTAL  -> "питомцем"
+            GramCase.PREPOSITIONAL -> "питомце"
+        }
+    }
+
     val last = name.last()
     val stem = name.dropLast(1)
     val stemLast = stem.lastOrNull()?.lowercaseChar()
@@ -101,6 +117,8 @@ fun declinePetName(rawName: String, case: GramCase): String {
             GramCase.INSTRUMENTAL  -> stem + "ем"
             GramCase.PREPOSITIONAL -> stem + "е"
         }
+
+        'и', 'у', 'ю', 'э' -> name
 
         // Мужской на согласную
         else -> when (case) {

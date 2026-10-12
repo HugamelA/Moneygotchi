@@ -83,8 +83,27 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { input ->
-                        val filtered = input.filter { it.isLetter() }.take(12)
-                        name = filtered
+                        val cyr = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" +
+                                "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+                        val lat = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+                                "abcdefghijklmnopqrstuvwxyz"
+
+                        val hasCyr = input.any { it in cyr }
+                        val hasLat = input.any { it in lat }
+
+                        val filtered = when {
+                            hasCyr && hasLat -> {
+                                val firstLetter = input.firstOrNull { it.isLetter() }
+                                if (firstLetter != null && firstLetter in cyr) {
+                                    input.filter { it in cyr }
+                                } else {
+                                    input.filter { it in lat }
+                                }
+                            }
+                            else -> input
+                        }
+
+                        name = filtered.filter { it.isLetter() }.take(12)
                     },
                     label = { Text("Имя питомца") },
                     supportingText = {
