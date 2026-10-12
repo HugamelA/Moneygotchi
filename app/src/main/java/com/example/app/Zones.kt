@@ -33,10 +33,10 @@ const val DEBUG_ZONES = false
 const val DEBUG_TUTORIAL = false
 const val DEBUG_TASKS_LAYOUT = false
 
-val BOOK_LEFT_PAGE = ZoneRect("Левая страница", 0.110f, 0.073f, 0.368f, 0.796f)
-val BOOK_RIGHT_PAGE = ZoneRect("Правая страница", 0.510f, 0.073f, 0.420f, 0.800f)
+val BOOK_LEFT_PAGE = ZoneRect("Левая страница", 0.123f, 0.267f, 0.367f, 0.215f)
+val BOOK_RIGHT_PAGE = ZoneRect("Правая страница", 0.513f, 0.267f, 0.367f, 0.215f)
 // Зона листка с ответами
-val PAPER_ZONE = ZoneRect("Лист", 0.06f, 0.066f, 0.869f, 0.901f)
+val PAPER_ZONE = ZoneRect("Лист", 0.123f, 0.543f, 0.758f, 0.266f)
 
 // Позиция и размеры зоны, чтобы их можно было двигать
 data class ZoneRect(

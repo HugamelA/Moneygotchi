@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 
-
 private fun isCorrectVerdict(verdict: String): Boolean = verdict == "recommended"
 
 private data class TaskResult(
@@ -106,6 +105,7 @@ fun TasksScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
+        // Фон
         Image(
             painter = painterResource(id = R.drawable.tasks_bg),
             contentDescription = null,
@@ -113,314 +113,268 @@ fun TasksScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-        ) {
+        val w = maxWidth.value
+        val h = maxHeight.value
 
-            // Верхняя область: книжка
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.55f)
-                    .padding(top = 205.dp, start = 14.dp, end = 14.dp, bottom = 25.dp)
-            ) {
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    if (DEBUG_TASKS_LAYOUT) {
-                        DebugZone(
-                            rect = BOOK_LEFT_PAGE,
-                            parentWidth = maxWidth,
-                            parentHeight = maxHeight,
-                            onClick = {}
+        if (DEBUG_TASKS_LAYOUT) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val dw = maxWidth
+                val dh = maxHeight
+
+                DebugZone(BOOK_LEFT_PAGE,  dw, dh, onClick = {})
+                DebugZone(BOOK_RIGHT_PAGE, dw, dh, onClick = {})
+                DebugZone(PAPER_ZONE,      dw, dh, onClick = {})
+            }
+            return@BoxWithConstraints
+        }
+
+        // ЛЕВАЯ и ПРАВАЯ СТРАНИЦЫ КНИГИ
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val leftIndex = page * 2
+            val rightIndex = page * 2 + 1
+
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                // Левая страница
+                Box(
+                    modifier = Modifier
+                        .offset(
+                            x = (BOOK_LEFT_PAGE.x * w).dp,
+                            y = (BOOK_LEFT_PAGE.y * h).dp
                         )
-                        DebugZone(
-                            rect = BOOK_RIGHT_PAGE,
-                            parentWidth = maxWidth,
-                            parentHeight = maxHeight,
-                            onClick = {}
+                        .size(
+                            width = (BOOK_LEFT_PAGE.w * w).dp,
+                            height = (BOOK_LEFT_PAGE.h * h).dp
                         )
-                        return@BoxWithConstraints
+                ) {
+                    allTasks.getOrNull(leftIndex)?.let { task ->
+                        val isLocked = storage.daysWithPet < task.unlockDay
+                        TaskOnBookPage(
+                            task = task,
+                            state = taskStateOf(task, storage),
+                            isSelected = task.id == selectedTaskId,
+                            isLocked = isLocked,
+                            displayTitle = sub(task.title),
+                            onClick = {
+                                selectedTaskId =
+                                    if (selectedTaskId == task.id) null else task.id
+                            }
+                        )
                     }
+                }
 
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize()
-                    ) { page ->
-                        val leftIndex = page * 2
-                        val rightIndex = page * 2 + 1
-
-                        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                            val pw = maxWidth.value
-                            val ph = maxHeight.value
-
-                            // Левая страница
-                            Box(
-                                modifier = Modifier
-                                    .offset(
-                                        x = (BOOK_LEFT_PAGE.x * pw).dp,
-                                        y = (BOOK_LEFT_PAGE.y * ph).dp
-                                    )
-                                    .size(
-                                        width = (BOOK_LEFT_PAGE.w * pw).dp,
-                                        height = (BOOK_LEFT_PAGE.h * ph).dp
-                                    )
-                            ) {
-                                allTasks.getOrNull(leftIndex)?.let { task ->
-                                    val isLocked = storage.daysWithPet < task.unlockDay
-                                    TaskOnBookPage(
-                                        task = task,
-                                        state = taskStateOf(task, storage),
-                                        isSelected = task.id == selectedTaskId,
-                                        isLocked = isLocked,
-                                        displayTitle = sub(task.title),
-                                        onClick = {
-                                            selectedTaskId =
-                                                if (selectedTaskId == task.id) null else task.id
-                                        }
-                                    )
-                                }
+                // Правая страница
+                Box(
+                    modifier = Modifier
+                        .offset(
+                            x = (BOOK_RIGHT_PAGE.x * w).dp,
+                            y = (BOOK_RIGHT_PAGE.y * h).dp
+                        )
+                        .size(
+                            width = (BOOK_RIGHT_PAGE.w * w).dp,
+                            height = (BOOK_RIGHT_PAGE.h * h).dp
+                        )
+                ) {
+                    allTasks.getOrNull(rightIndex)?.let { task ->
+                        val isLocked = storage.daysWithPet < task.unlockDay
+                        TaskOnBookPage(
+                            task = task,
+                            state = taskStateOf(task, storage),
+                            isSelected = task.id == selectedTaskId,
+                            isLocked = isLocked,
+                            displayTitle = sub(task.title),
+                            onClick = {
+                                selectedTaskId =
+                                    if (selectedTaskId == task.id) null else task.id
                             }
-
-                            // Правая страница
-                            Box(
-                                modifier = Modifier
-                                    .offset(
-                                        x = (BOOK_RIGHT_PAGE.x * pw).dp,
-                                        y = (BOOK_RIGHT_PAGE.y * ph).dp
-                                    )
-                                    .size(
-                                        width = (BOOK_RIGHT_PAGE.w * pw).dp,
-                                        height = (BOOK_RIGHT_PAGE.h * ph).dp
-                                    )
-                            ) {
-                                allTasks.getOrNull(rightIndex)?.let { task ->
-                                    val isLocked = storage.daysWithPet < task.unlockDay
-                                    TaskOnBookPage(
-                                        task = task,
-                                        state = taskStateOf(task, storage),
-                                        isSelected = task.id == selectedTaskId,
-                                        isLocked = isLocked,
-                                        displayTitle = sub(task.title),
-                                        onClick = {
-                                            selectedTaskId =
-                                                if (selectedTaskId == task.id) null else task.id
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        )
                     }
                 }
             }
+        }
 
-            // Нижняя область: листок
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.50f)
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 28.dp, end = 28.dp, top = 20.dp, bottom = 150.dp)
-            ) {
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val pw = maxWidth.value
-                    val ph = maxHeight.value
-
-                    if (DEBUG_TASKS_LAYOUT) {
-                        DebugZone(
-                            rect = PAPER_ZONE,
-                            parentWidth = maxWidth,
-                            parentHeight = maxHeight,
-                            onClick = {}
+        // ЛИСТ
+        Box(
+            modifier = Modifier
+                .offset(
+                    x = (PAPER_ZONE.x * w).dp,
+                    y = (PAPER_ZONE.y * h).dp
+                )
+                .size(
+                    width = (PAPER_ZONE.w * w).dp,
+                    height = (PAPER_ZONE.h * h).dp
+                )
+        ) {
+            if (selectedTask == null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Нажми на задание,\nчтобы увидеть ответ",
+                        fontSize = 16.sp,
+                        color = Color(0xFF8A8A8A),
+                        textAlign = TextAlign.Center,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            } else if (storage.daysWithPet < selectedTask.unlockDay) {
+                val daysLeft = selectedTask.unlockDay - storage.daysWithPet
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("🔒", fontSize = 56.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Задание откроется через $daysLeft ${
+                                daysWord(daysLeft)
+                            }",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF888888),
+                            textAlign = TextAlign.Center
                         )
-                        return@BoxWithConstraints
                     }
+                }
+            } else {
+                key(version) {
+                    val confirmedId = storage.getChosenOption(selectedTask.id)
+                    val pending = pendingOptions[selectedTask.id]
+                    val correctOptionId = selectedTask.options
+                        .firstOrNull { isCorrectVerdict(it.verdict) }?.id
 
-                    Box(
-                        modifier = Modifier
-                            .offset(
-                                x = (PAPER_ZONE.x * pw).dp,
-                                y = (PAPER_ZONE.y * ph).dp
-                            )
-                            .size(
-                                width = (PAPER_ZONE.w * pw).dp,
-                                height = (PAPER_ZONE.h * ph).dp
-                            )
-                    ) {
-                        if (selectedTask == null) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
+                    val scrollState = rememberScrollState()
+                    val isScrollable = scrollState.maxValue > 0
+                    val showAnswerButton =
+                        (confirmedId == null && pending != null)
+
+                    Column(modifier = Modifier.fillMaxSize()) {
+
+                        // Перематываемая часть
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(scrollState)
+                                    .padding(
+                                        start = 4.dp,
+                                        end = if (isScrollable) 12.dp else 4.dp
+                                    )
                             ) {
                                 Text(
-                                    "Нажми на задание,\nчтобы увидеть ответ",
-                                    fontSize = 16.sp,
-                                    color = Color(0xFF8A8A8A),
-                                    textAlign = TextAlign.Center,
-                                    fontStyle = FontStyle.Italic
+                                    sub(selectedTask.situation),
+                                    fontSize = 14.sp,
+                                    lineHeight = 19.sp,
+                                    color = Color(0xFF333333),
+                                    fontWeight = FontWeight.Medium
                                 )
-                            }
-                        } else if (storage.daysWithPet < selectedTask.unlockDay) {
-                            // Задание заблокировано
-                            val daysLeft = selectedTask.unlockDay - storage.daysWithPet
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("🔒", fontSize = 56.sp)
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(
-                                        "Задание откроется через $daysLeft ${
-                                            daysWord(daysLeft)
-                                        }",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF888888),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        } else {
-                            key(version) {
-                                val confirmedId = storage.getChosenOption(selectedTask.id)
-                                val pending = pendingOptions[selectedTask.id]
-                                val correctOptionId = selectedTask.options
-                                    .firstOrNull { isCorrectVerdict(it.verdict) }?.id
+                                Spacer(Modifier.height(14.dp))
+                                HorizontalDivider(color = Color(0xFFEEEEEE))
+                                Spacer(Modifier.height(10.dp))
 
-                                val scrollState = rememberScrollState()
-                                val isScrollable = scrollState.maxValue > 0
-                                val showAnswerButton =
-                                    (confirmedId == null && pending != null)
+                                Column(
+                                    modifier = Modifier.offset(y = (-25).dp)
+                                ) {
+                                    selectedTask.options.forEach { option ->
+                                        val isConfirmed = (confirmedId == option.id)
+                                        val isRevealedCorrect =
+                                            (confirmedId != null) &&
+                                                    (confirmedId != correctOptionId) &&
+                                                    (option.id == correctOptionId)
 
-                                Column(modifier = Modifier.fillMaxSize()) {
-
-                                    // Перематываемая часть
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f)
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .verticalScroll(scrollState)
-                                                .padding(
-                                                    start = 4.dp,
-                                                    end = if (isScrollable) 12.dp else 4.dp
-                                                )
-                                        ) {
-                                            // Текст задания с подстановкой
-                                            Text(
-                                                sub(selectedTask.situation),
-                                                fontSize = 14.sp,
-                                                lineHeight = 19.sp,
-                                                color = Color(0xFF333333),
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                            Spacer(Modifier.height(14.dp))
-                                            HorizontalDivider(color = Color(0xFFEEEEEE))
-                                            Spacer(Modifier.height(10.dp))
-
-                                            // Варианты ответов
-                                            Column(
-                                                modifier = Modifier.offset(y = (-25).dp)
-                                            ) {
-                                                selectedTask.options.forEach { option ->
-                                                    val isConfirmed = (confirmedId == option.id)
-                                                    val isRevealedCorrect =
-                                                        (confirmedId != null) &&
-                                                                (confirmedId != correctOptionId) &&
-                                                                (option.id == correctOptionId)
-
-                                                    OptionItem(
-                                                        option = option,
-                                                        displayText = sub(option.text),
-                                                        displayPetReply = sub(option.petReply),
-                                                        displayExplanation = sub(option.explanation),
-                                                        isPending = (pending == option.id && confirmedId == null),
-                                                        isConfirmed = isConfirmed,
-                                                        isRevealedCorrect = isRevealedCorrect,
-                                                        isLocked = (confirmedId != null),
-                                                        onClick = {
-                                                            if (confirmedId == null) {
-                                                                pendingOptions[selectedTask.id] =
-                                                                    option.id
-                                                            }
-                                                        }
-                                                    )
-                                                    Spacer(Modifier.height(8.dp))
+                                        OptionItem(
+                                            option = option,
+                                            displayText = sub(option.text),
+                                            displayPetReply = sub(option.petReply),
+                                            displayExplanation = sub(option.explanation),
+                                            isPending = (pending == option.id && confirmedId == null),
+                                            isConfirmed = isConfirmed,
+                                            isRevealedCorrect = isRevealedCorrect,
+                                            isLocked = (confirmedId != null),
+                                            onClick = {
+                                                if (confirmedId == null) {
+                                                    pendingOptions[selectedTask.id] =
+                                                        option.id
                                                 }
                                             }
-                                        }
-
-                                        // Ползунок прокрутки
-                                        if (isScrollable) {
-                                            ScrollBarIndicator(
-                                                scrollValue = scrollState.value,
-                                                scrollMax = scrollState.maxValue,
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .width(6.dp)
-                                                    .fillMaxHeight()
-                                                    .padding(vertical = 4.dp)
-                                            )
-                                        }
-                                    }
-
-                                    // Кнопка Ответить
-                                    if (showAnswerButton) {
+                                        )
                                         Spacer(Modifier.height(8.dp))
-                                        Button(
-                                            onClick = {
-                                                val chosenOption = selectedTask.options
-                                                    .firstOrNull { it.id == pending }
-                                                    ?: return@Button
-                                                val correct = isCorrectVerdict(chosenOption.verdict)
-
-                                                val firstAnswer =
-                                                    storage.getChosenOption(selectedTask.id) == null
-
-                                                storage.setChosenOption(
-                                                    selectedTask.id,
-                                                    chosenOption.id
-                                                )
-                                                pendingOptions.remove(selectedTask.id)
-
-                                                if (firstAnswer) {
-                                                    storage.tasksTotal += 1
-                                                    if (correct) storage.tasksCorrect += 1
-                                                }
-
-                                                var reward = 0
-                                                var moodGain = 0
-                                                if (correct && !storage.isTaskCompleted(selectedTask.id)) {
-                                                    storage.markTaskCompleted(selectedTask.id)
-                                                    storage.coins += selectedTask.reward
-                                                    moodGain =
-                                                        storage.gainHappinessWithPenalty(Economy.moodForCompletion)
-                                                    reward = selectedTask.reward
-                                                }
-
-                                                val correctOption = selectedTask.options
-                                                    .firstOrNull { isCorrectVerdict(it.verdict) }
-
-                                                resultDialog = TaskResult(
-                                                    chosenOption = chosenOption,
-                                                    correctOption = correctOption,
-                                                    rewardGiven = reward,
-                                                    moodGiven = moodGain,
-                                                    isCorrect = correct
-                                                )
-
-                                                version++
-                                            },
-                                            modifier = Modifier.fillMaxWidth().height(48.dp)
-                                        ) {
-                                            Text("Ответить", fontSize = 16.sp)
-                                        }
                                     }
                                 }
+                            }
+
+                            if (isScrollable) {
+                                ScrollBarIndicator(
+                                    scrollValue = scrollState.value,
+                                    scrollMax = scrollState.maxValue,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .width(6.dp)
+                                        .fillMaxHeight()
+                                        .padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        // Кнопка Ответить
+                        if (showAnswerButton) {
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    val chosenOption = selectedTask.options
+                                        .firstOrNull { it.id == pending }
+                                        ?: return@Button
+                                    val correct = isCorrectVerdict(chosenOption.verdict)
+
+                                    val firstAnswer =
+                                        storage.getChosenOption(selectedTask.id) == null
+
+                                    storage.setChosenOption(
+                                        selectedTask.id,
+                                        chosenOption.id
+                                    )
+                                    pendingOptions.remove(selectedTask.id)
+
+                                    if (firstAnswer) {
+                                        storage.tasksTotal += 1
+                                        if (correct) storage.tasksCorrect += 1
+                                    }
+
+                                    var reward = 0
+                                    var moodGain = 0
+                                    if (correct && !storage.isTaskCompleted(selectedTask.id)) {
+                                        storage.markTaskCompleted(selectedTask.id)
+                                        storage.coins += selectedTask.reward
+                                        moodGain =
+                                            storage.gainHappinessWithPenalty(Economy.moodForCompletion)
+                                        reward = selectedTask.reward
+                                    }
+
+                                    val correctOption = selectedTask.options
+                                        .firstOrNull { isCorrectVerdict(it.verdict) }
+
+                                    resultDialog = TaskResult(
+                                        chosenOption = chosenOption,
+                                        correctOption = correctOption,
+                                        rewardGiven = reward,
+                                        moodGiven = moodGain,
+                                        isCorrect = correct
+                                    )
+
+                                    version++
+                                },
+                                modifier = Modifier.fillMaxWidth().height(48.dp)
+                            ) {
+                                Text("Ответить", fontSize = 16.sp)
                             }
                         }
                     }
@@ -430,6 +384,7 @@ fun TasksScreen(
 
         BackHandler { onBack() }
 
+        // Кнопка «Назад»
         Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -440,8 +395,8 @@ fun TasksScreen(
                     indication = null
                 ) { onBack() },
             shape = RoundedCornerShape(20.dp),
-            color = Color.White.copy(alpha = 1f),
-            border = BorderStroke(2.dp, Color.White.copy(alpha = 1f))
+            color = Color.White,
+            border = BorderStroke(2.dp, Color.White)
         ) {
             Text(
                 "Назад",
