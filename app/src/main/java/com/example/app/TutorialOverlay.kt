@@ -31,9 +31,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.platform.LocalDensity
 
 // ОБУЧАЮЩЕЕ МЕНЮ
 data class TutorialStep(
@@ -208,10 +207,44 @@ fun TutorialOverlay(
                     .background(Color.Black.copy(alpha = 0.8f))
             )
         } else {
-            val fx = focus.x * w
-            val fy = focus.y * h
-            val fw = focus.w * w
-            val fh = focus.h * h
+            val density = LocalDensity.current
+            val hudRect = HudBounds.map[focus.name]
+
+            val rawFx: Float
+            val rawFy: Float
+            val rawFw: Float
+            val rawFh: Float
+
+            if (hudRect != null) {
+                val inset = HudBounds.insets[focus.name] ?: listOf(0, 0, 0, 0)
+                val leftIn = inset[0].dp.value
+                val topIn = inset[1].dp.value
+                val rightIn = inset[2].dp.value
+                val bottomIn = inset[3].dp.value
+
+                with(density) {
+                    rawFx = hudRect.left.toDp().value + leftIn
+                    rawFy = hudRect.top.toDp().value + topIn
+                    rawFw = (hudRect.width.toDp().value - leftIn - rightIn)
+                        .coerceAtLeast(0f)
+                    rawFh = (hudRect.height.toDp().value - topIn - bottomIn)
+                        .coerceAtLeast(0f)
+                }
+            } else {
+                rawFx = focus.x * w
+                rawFy = focus.y * h
+                rawFw = focus.w * w
+                rawFh = focus.h * h
+            }
+
+            // Равномерное расширение ВСЕХ рамок обучения.
+            // Меняй одно число — от 0f (впритык) до 12f (щедро).
+            val expandDp = 6f
+
+            val fx = rawFx - expandDp
+            val fy = rawFy - expandDp
+            val fw = rawFw + expandDp * 2
+            val fh = rawFh + expandDp * 2
 
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val path = Path().apply {

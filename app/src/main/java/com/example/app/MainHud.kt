@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 
 
 // HUD И ПОДСКАЗКИ
@@ -79,13 +81,20 @@ internal fun BoxScope.MainHud(
             modifier = Modifier.align(Alignment.TopStart),
             horizontalAlignment = Alignment.Start
         ) {
-            LevelCircle(
-                level = storage.petLevel,
-                progress = storage.starsProgress(),
-                onPressChange = { starsPopupVisible = it }
-            )
+            Box(
+                modifier = Modifier.onGloballyPositioned {
+                    HudBounds.map["Уровень"] = it.boundsInRoot()
+                }
+            ) {
+                LevelCircle(
+                    level = storage.petLevel,
+                    progress = storage.starsProgress(),
+                    onPressChange = { starsPopupVisible = it }
+                )
+            }
             Spacer(Modifier.height(10.dp))
             StatBar(
+                hudKey = "Сытость",
                 iconRes = hungerIconRes(storage.hunger),
                 value = storage.hunger,
                 barColorFor = ::hungerBarColor,
@@ -94,6 +103,7 @@ internal fun BoxScope.MainHud(
             )
             Spacer(Modifier.height(6.dp))
             StatBar(
+                hudKey = "Настроение",
                 iconRes = moodIconRes(storage.happiness),
                 value = storage.happiness,
                 barColorFor = ::moodBarColor,
@@ -106,23 +116,45 @@ internal fun BoxScope.MainHud(
             modifier = Modifier.align(Alignment.BottomEnd),
             horizontalAlignment = Alignment.End
         ) {
-            SmallInfoChip(iconRes = R.drawable.coin, text = formatCoins(storage.coins))
-            Spacer(Modifier.height(10.dp))
-            SmallInfoChip(text = "День: ${storage.daysWithPet}")
-            Spacer(Modifier.height(10.dp))
-            GoalChip(
-                hasGoal = storage.goalName.isNotBlank() && storage.goalPrice > 0,
-                saved = storage.piggyBalance,
-                price = storage.goalPrice,
-                onClick = {
-                    if (!showTutorial || tutorialFocusZone == "Цель") onGoalClick()
+            Box(
+                modifier = Modifier.onGloballyPositioned {
+                    HudBounds.map["Монеты"] = it.boundsInRoot()
                 }
-            )
+            ) {
+                SmallInfoChip(iconRes = R.drawable.coin, text = formatCoins(storage.coins))
+            }
+            Spacer(Modifier.height(10.dp))
+            Box(
+                modifier = Modifier.onGloballyPositioned {
+                    HudBounds.map["Дни"] = it.boundsInRoot()
+                }
+            ) {
+                SmallInfoChip(text = "День: ${storage.daysWithPet}")
+            }
+            Spacer(Modifier.height(10.dp))
+            Box(
+                modifier = Modifier.onGloballyPositioned {
+                    HudBounds.map["Цель"] = it.boundsInRoot()
+                }
+            ) {
+                GoalChip(
+                    hasGoal = storage.goalName.isNotBlank() && storage.goalPrice > 0,
+                    saved = storage.piggyBalance,
+                    price = storage.goalPrice,
+                    onClick = {
+                        if (!showTutorial || tutorialFocusZone == "Цель") onGoalClick()
+                    }
+                )
+            }
         }
 
         IconButton(
             onClick = { if (!showTutorial) onSettingsClick() },
-            modifier = Modifier.align(Alignment.TopEnd)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .onGloballyPositioned {
+                    HudBounds.map["Настройки"] = it.boundsInRoot()
+                }
         ) {
             Text("⚙️", fontSize = 26.sp)
         }

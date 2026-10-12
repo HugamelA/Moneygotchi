@@ -35,6 +35,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 
 @Composable
 fun LevelCircle(
@@ -112,6 +114,7 @@ fun LevelCircle(
 
 @Composable
 fun StatBar(
+    hudKey: String,
     iconRes: Int,
     value: Int,
     barColorFor: (Int) -> Color,
@@ -128,6 +131,9 @@ fun StatBar(
         modifier = Modifier
             .height(44.dp)
             .width(220.dp)
+            .onGloballyPositioned {
+                HudBounds.map[hudKey] = it.boundsInRoot()
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {

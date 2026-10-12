@@ -23,6 +23,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.runtime.DisposableEffect
 
 // Общая константа для inline-иконки монеты в диалоге сна
 internal const val INLINE_COIN = "inline_coin"
@@ -45,6 +46,10 @@ fun MainScreen(
     canSkipTutorial: Boolean = false,
     onTutorialFinished: () -> Unit = {}
 ) {
+    DisposableEffect(Unit) {
+        onDispose { HudBounds.clear() }
+    }
+
     val context = LocalContext.current
 
     remember { ShopCatalog.load(context); 0 }

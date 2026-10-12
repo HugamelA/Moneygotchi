@@ -164,8 +164,8 @@ val COINS_BALANCE = ZoneRect("Баланс",                0.593f, 0.727f, 0.37
 
 val PIGGY_LABEL  = ZoneRect("Надпись копилки", 0.620f, 0.570f, 0.350f, 0.085f)
 
-val COIN_5   = ZoneRect("Монетка 5",    0.033f, 0.76f, 0.16f, 0.10f)
-val COIN_10  = ZoneRect("Монетка 10",   0.205f, 0.76f, 0.16f, 0.10f)
-val COIN_20  = ZoneRect("Монетка 20",   0.377f, 0.76f, 0.16f, 0.10f)
-val COIN_50  = ZoneRect("Монетка 50",   0.033f, 0.86f, 0.16f, 0.10f)
-val COIN_100 = ZoneRect("Монетка 100",  0.205f, 0.86f, 0.16f, 0.10f)
+val COIN_5   = ZoneRect("Монетка 5",    0.033f, 0.727f, 0.16f, 0.10f)
+val COIN_10  = ZoneRect("Монетка 10",   0.205f, 0.727f, 0.16f, 0.10f)
+val COIN_20  = ZoneRect("Монетка 20",   0.377f, 0.727f, 0.16f, 0.10f)
+val COIN_50  = ZoneRect("Монетка 50",   0.033f, 0.827f, 0.16f, 0.10f)
+val COIN_100 = ZoneRect("Монетка 100",  0.205f, 0.827f, 0.16f, 0.10f)
