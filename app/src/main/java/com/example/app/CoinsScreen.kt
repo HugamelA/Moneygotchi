@@ -117,7 +117,7 @@ fun CoinsScreen(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
-                    .padding(top = 62.dp, start = 24.dp, end = 24.dp),
+                    .padding(top = 70.dp, start = 24.dp, end = 24.dp),
                 shape = RoundedCornerShape(14.dp),
                 color = Color.White.copy(alpha = 0.85f),
                 shadowElevation = 2.dp
@@ -249,7 +249,7 @@ fun CoinsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            "В копилке: $piggy ${coinsWord(piggy)}",
+                            "В копилке: \n$piggy ${coinsWord(piggy)}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
