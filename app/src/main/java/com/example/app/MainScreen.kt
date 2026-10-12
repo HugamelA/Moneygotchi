@@ -132,15 +132,21 @@ fun MainScreen(
         )
 
         // Верхняя зона с панелями + подсказки
-        MainHud(
-            storage = storage,
-            hungerDelta = hungerDelta,
-            happinessDelta = happinessDelta,
-            showTutorial = showTutorial,
-            tutorialFocusZone = tutorialFocusZone,
-            onSettingsClick = onSettingsClick,
-            onGoalClick = onGoalClick
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        ) {
+            MainHud(
+                storage = storage,
+                hungerDelta = hungerDelta,
+                happinessDelta = happinessDelta,
+                showTutorial = showTutorial,
+                tutorialFocusZone = tutorialFocusZone,
+                onSettingsClick = onSettingsClick,
+                onGoalClick = onGoalClick
+            )
+        }
 
         // Оверлей затемнения при завершении дня
         SleepOverlayLayer(
@@ -188,30 +194,35 @@ fun MainScreen(
         }
 
         // Кружки и карусели питомца
-        PetMenuLayer(
-            stage = petMenuStage,
-            storage = storage,
-            petInventory = petInventory,
-            onStageChange = { petMenuStage = it },
-            onInventoryRefresh = { petInventory = storage.getInventory() },
-            onUse = { product ->
-                val beforeHunger = storage.hunger
-                val beforeHappiness = storage.happiness
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        ) {
+            PetMenuLayer(
+                stage = petMenuStage,
+                storage = storage,
+                petInventory = petInventory,
+                onStageChange = { petMenuStage = it },
+                onInventoryRefresh = { petInventory = storage.getInventory() },
+                onUse = { product ->
+                    val beforeHunger = storage.hunger
+                    val beforeHappiness = storage.happiness
 
-                val real = storage.applyPurchaseEffects(
-                    product.hungerEffect, product.happinessEffect
-                )
+                    val real = storage.applyPurchaseEffects(
+                        product.hungerEffect, product.happinessEffect
+                    )
 
-                if (real.first > 0 || real.second > 0) {
-                    storage.consumeFromInventory(product.id)
-                    petInventory = storage.getInventory()
+                    if (real.first > 0 || real.second > 0) {
+                        storage.consumeFromInventory(product.id)
+                        petInventory = storage.getInventory()
 
-                    if (real.first > 0) hungerDelta = real.first
-                    if (real.second > 0) happinessDelta = real.second
+                        if (real.first > 0) hungerDelta = real.first
+                        if (real.second > 0) happinessDelta = real.second
+                    }
                 }
-            }
-        )
-
+            )
+        }
         // Диалог события
         val ev = currentEvent
         if (ev != null) {

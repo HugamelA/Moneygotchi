@@ -47,6 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 
 // HUD И ПОДСКАЗКИ
@@ -229,7 +232,9 @@ internal fun SleepOverlayLayer(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(32.dp)
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(32.dp)
             ) {
                 AnimatedVisibility(
                     visible = sleepTextVisible,
