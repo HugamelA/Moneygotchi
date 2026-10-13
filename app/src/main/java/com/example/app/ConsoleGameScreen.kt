@@ -4,8 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -39,11 +37,66 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.runtime.key
 import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.foundation.gestures.awaitFirstDown
+import android.graphics.Bitmap
+
+// БОСС
+private const val BOSS_TRIGGER_SCORE = 1500
+private const val BOSS_HP = 700
+private const val BOSS_HALF_HEIGHT = 350f
+private const val BOSS_ASPECT = 656f / 476f
+private const val BOSS_Y_FRACTION = 0.20f
+private const val BOSS_RECOVERY_TIME = 1.5f
+private const val BOSS_ENTRY_DURATION = 1.5f
+private const val BOSS_DEATH_DURATION = 3f
+private const val BOSS_DEATH_EXPLOSION_INTERVAL = 0.12f
+private const val BOSS_VICTORY_DELAY = 2f
+
+// Ракеты
+private const val MISSILE_SPEED = 220f
+private const val MISSILE_TURN = 1.4f
+private const val MISSILE_HP = 2
+private const val MISSILE_DROP_CHANCE = 0.35f
+private const val MISSILE_HALF_HEIGHT = 64f
+private const val MISSILE_ASPECT = 53f / 169f
+
+// Веер выстрелов
+private const val SPREAD_SPEED = 420f
+private const val SPREAD_BULLET_RADIUS = 20f
+private const val SPREAD_SALVOS = 10
+private const val SPREAD_DELAY_BETWEEN = 0.7f
+private const val SPREAD_FINISH_DELAY = 0.6f
+
+// Приспешники
+private const val MINION_COUNT = 4
+private const val MINION_FLY_TIME = 2.2f
+private const val MINION_FIRE_INTERVAL_START = 0.9f
+private const val MINION_FIRE_INTERVAL_MIN = 0.15f
+private const val MINION_ACCEL_START_TIME = 4f
+private const val MINION_ACCEL_DURATION = 3f
+private const val MINION_BULLET_SPEED = 300f
+private const val MINION_BULLET_RADIUS = 12f
+private const val MINION_Y_OFFSET = 60f
+
+// Прицельные выстрелы
+private const val AIMED_INTERVAL = 0.2f
+private const val AIMED_DURATION = 6f
+private const val AIMED_BULLET_SPEED = 350f
+private const val AIMED_BULLET_RADIUS = 20f
+
+// Цвета пуль
+private val BULLET_COLOR_HALO = Color(0x66FF6F00)
+private val BULLET_COLOR_MID = Color(0xAAFF3B30)
+private val BULLET_COLOR_CORE = Color(0xFFFFE0B2)
+
+// Награда за победу
+private const val BOSS_VICTORY_BONUS_SCORE = 1000
+private const val BOSS_VICTORY_COINS = 20
 
 // ПАРАМЕТРЫ
 private const val PLAYER_SIZE = 50f
@@ -57,9 +110,9 @@ private const val MIN_SPAWN = 0.22f
 private const val MAX_COINS_REWARD = 20
 private const val POWERUP_FALL_SPEED = 400f
 private const val POWERUP_LIFETIME = 7f
-private const val POWERUP_PICKUP_RADIUS = 40f
+private const val POWERUP_PICKUP_RADIUS = 68f
 private const val POWERUP_MAX_ON_SCREEN = 4
-private const val POWERUP_RADIUS = 28f
+private const val POWERUP_RADIUS = 34f
 
 private const val SHIELD_PUSH_SPEED = 500f
 private const val SHIELD_PUSH_DURATION = 0.4f
@@ -131,32 +184,70 @@ fun ConsoleGameScreen(
 
     // Загрузка спрайтов
     val context = androidx.compose.ui.platform.LocalContext.current
+    fun loadScaled(id: Int, maxSide: Int = 128): ImageBitmap? {
+        val original = BitmapFactory.decodeResource(context.resources, id) ?: return null
+        if (original.width <= maxSide && original.height <= maxSide) {
+            return original.asImageBitmap()
+        }
+        val ratio = maxSide.toFloat() / maxOf(original.width, original.height)
+        val w = (original.width * ratio).toInt().coerceAtLeast(1)
+        val h = (original.height * ratio).toInt().coerceAtLeast(1)
+        val scaled = android.graphics.Bitmap.createScaledBitmap(original, w, h, true)
+        if (scaled !== original) original.recycle()
+        return scaled.asImageBitmap()
+    }
+
     val playerSprite = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.player_ship)
-            ?.asImageBitmap()
+        loadScaled(R.drawable.player_ship, maxSide = 256)
     }
     val enemySmallSprite = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.enemy_small)
-            ?.asImageBitmap()
+        loadScaled(R.drawable.enemy_small, maxSide = 128)
     }
     val enemyMediumSprite = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.enemy_medium)
-            ?.asImageBitmap()
+        loadScaled(R.drawable.enemy_medium, maxSide = 192)
     }
     val enemyLargeSprite = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.enemy_large)
+        loadScaled(R.drawable.enemy_large, maxSide = 256)
+    }
+
+    val bossSprite = remember {
+        BitmapFactory.decodeResource(context.resources, R.drawable.boss_ship)
             ?.asImageBitmap()
+    }
+    val missileSprite = remember {
+        BitmapFactory.decodeResource(context.resources, R.drawable.boss_missile)
+            ?.asImageBitmap()
+    }
+
+    val bossMaskBitmap: Bitmap? = remember {
+        val resId = context.resources.getIdentifier(
+            "boss_ship_mask", "drawable", context.packageName
+        )
+        if (resId != 0) BitmapFactory.decodeResource(context.resources, resId) else null
     }
 
     // Спрайты баффов
     val buffSprites = remember {
+        fun loadScaled(id: Int, maxSide: Int = 128): ImageBitmap? {
+            val original = BitmapFactory.decodeResource(context.resources, id) ?: return null
+            if (original.width <= maxSide && original.height <= maxSide) {
+                return original.asImageBitmap()
+            }
+            val ratio = maxSide.toFloat() / maxOf(original.width, original.height)
+            val w = (original.width * ratio).toInt().coerceAtLeast(1)
+            val h = (original.height * ratio).toInt().coerceAtLeast(1)
+            val scaled = android.graphics.Bitmap.createScaledBitmap(original, w, h, true)
+            if (scaled !== original) original.recycle()
+            return scaled.asImageBitmap()
+        }
+
         mapOf(
-            PowerUpType.HEAL       to BitmapFactory.decodeResource(context.resources, PowerUpType.HEAL.iconRes)?.asImageBitmap(),
-            PowerUpType.SHIELD     to BitmapFactory.decodeResource(context.resources, PowerUpType.SHIELD.iconRes)?.asImageBitmap(),
-            PowerUpType.RAPID_FIRE to BitmapFactory.decodeResource(context.resources, PowerUpType.RAPID_FIRE.iconRes)?.asImageBitmap(),
-            PowerUpType.TRIPLE     to BitmapFactory.decodeResource(context.resources, PowerUpType.TRIPLE.iconRes)?.asImageBitmap(),
-            PowerUpType.PIERCE     to BitmapFactory.decodeResource(context.resources, PowerUpType.PIERCE.iconRes)?.asImageBitmap(),
-            PowerUpType.SLOW       to BitmapFactory.decodeResource(context.resources, PowerUpType.SLOW.iconRes)?.asImageBitmap()
+            PowerUpType.HEAL       to loadScaled(PowerUpType.HEAL.iconRes),
+            PowerUpType.SHIELD     to loadScaled(PowerUpType.SHIELD.iconRes),
+            PowerUpType.RAPID_FIRE to loadScaled(PowerUpType.RAPID_FIRE.iconRes),
+            PowerUpType.TRIPLE     to loadScaled(PowerUpType.TRIPLE.iconRes),
+            PowerUpType.PIERCE     to loadScaled(PowerUpType.PIERCE.iconRes),
+            PowerUpType.SLOW       to loadScaled(PowerUpType.SLOW.iconRes)
         )
     }
 
@@ -170,7 +261,10 @@ fun ConsoleGameScreen(
             enemySmallSprite,
             enemyMediumSprite,
             enemyLargeSprite,
-            buffSprites
+            buffSprites,
+            bossSprite,
+            missileSprite,
+            bossMaskBitmap
         )
     }
 
@@ -200,13 +294,27 @@ fun ConsoleGameScreen(
             .background(Color(0xFF0A0A14))
             .onSizeChanged { sizePx = it }
             .pointerInput(gameState) {
-                detectDragGestures { change, _ ->
-                    gameState?.movePlayerTo(change.position.x)
-                }
-            }
-            .pointerInput(gameState) {
-                detectTapGestures { offset ->
-                    gameState?.movePlayerTo(offset.x)
+                awaitPointerEventScope {
+                    while (true) {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        gameState?.isTouching = true
+                        down.consume()
+
+                        var stillPressed = true
+                        while (stillPressed) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id }
+                            if (change == null || !change.pressed) {
+                                stillPressed = false
+                            } else {
+                                if (change.position != change.previousPosition) {
+                                    gameState?.movePlayerTo(change.position.x)
+                                }
+                                change.consume()
+                            }
+                        }
+                        gameState?.isTouching = false
+                    }
                 }
             }
     ) {
@@ -221,9 +329,10 @@ fun ConsoleGameScreen(
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Левая колонка — SCORE
             Column {
                 Text(
                     "SCORE",
@@ -240,7 +349,11 @@ fun ConsoleGameScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+
+            // Правая колонка — HP + баффы (баффы СТРОГО под HP)
             Column(horizontalAlignment = Alignment.End) {
+
+                // ─── HP-параллелограммы ───
                 Row {
                     val isShielded = (gameState?.shieldTimer ?: 0f) > 0f
 
@@ -273,9 +386,9 @@ fun ConsoleGameScreen(
                     }
                 }
 
+                // ─── Баффы под HP ───
                 Spacer(Modifier.height(8.dp))
 
-                // Активные баффы
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     @Suppress("UNUSED_EXPRESSION")
                     frameTick
@@ -342,9 +455,13 @@ fun ConsoleGameScreen(
             )
         }
 
-        if (gameOver) {
-            val score = gameState?.score ?: 0
-            val coins = score.coerceAtMost(MAX_COINS_REWARD)
+        val shouldShowDialog = gameOver || (gameState?.showVictoryDialog == true)
+        if (shouldShowDialog) {
+            val baseScore = gameState?.score ?: 0
+            val isVictory = gameState?.bossDefeated == true
+            val finalScore = if (isVictory) baseScore + BOSS_VICTORY_BONUS_SCORE else baseScore
+            val coins = if (isVictory) BOSS_VICTORY_COINS
+            else baseScore.coerceAtMost(MAX_COINS_REWARD)
             LaunchedEffect(Unit) {
                 if (!rewardGiven) {
                     storage.coins += coins
@@ -354,10 +471,30 @@ fun ConsoleGameScreen(
             }
             AlertDialog(
                 onDismissRequest = { },
-                title = { Text("Игра окончена", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        if (isVictory) "🎉 Босс побеждён!" else "Игра окончена",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 text = {
                     Column {
-                        Text("Счёт: $score", fontSize = 16.sp)
+                        if (isVictory) {
+                            Text(
+                                "Ты победил босса!",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF4CAF50)
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Бонус за победу: +$BOSS_VICTORY_BONUS_SCORE очков",
+                                fontSize = 14.sp,
+                                color = Color(0xFF4CAF50)
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
+                        Text("Счёт: $finalScore", fontSize = 16.sp)
                         Spacer(Modifier.height(8.dp))
                         Text(
                             "Монет получено: +$coinsEarned",
@@ -391,8 +528,18 @@ private class GameState(
     private val enemySmallSprite: ImageBitmap?,
     private val enemyMediumSprite: ImageBitmap?,
     private val enemyLargeSprite: ImageBitmap?,
-    private val buffSprites: Map<PowerUpType, ImageBitmap?>
+    private val buffSprites: Map<PowerUpType, ImageBitmap?>,
+    private val bossSprite: ImageBitmap?,
+    private val missileSprite: ImageBitmap?,
+    private val bossMaskBitmap: Bitmap?
 ) {
+
+    // Пиксели маски для быстрого доступа за O(1)
+    private val bossMaskPixels: IntArray? = bossMaskBitmap?.let { bmp ->
+        val pixels = IntArray(bmp.width * bmp.height)
+        bmp.getPixels(pixels, 0, bmp.width, 0, 0, bmp.width, bmp.height)
+        pixels
+    }
 
     var score = 0
         private set
@@ -408,12 +555,28 @@ private class GameState(
     val bullets = mutableListOf<Bullet>()
     val enemies = mutableListOf<Enemy>()
     val particles = mutableListOf<Particle>()
+    val shockwaves = mutableListOf<Shockwave>()
     val stars = mutableListOf<Star>()
     val powerUps = mutableListOf<PowerUp>()
+    val bossMissiles = mutableListOf<BossMissile>()
+    val bossMinions = mutableListOf<BossMinion>()
+    val bossBullets = mutableListOf<BossBullet>()
+
+    var boss: Boss? = null
+        private set
+    var bossDefeated = false
+        private set
+    private var bossSpawned = false
+
+    private var victoryDelayTimer = 0f
+    var showVictoryDialog = false
+        private set
 
     private var elapsed = 0f
     private var fireTimer = 0f
     private var spawnTimer = 0f
+
+    var isTouching = false
     private val rng = Random(System.currentTimeMillis())
 
     // Время неуязвимости после удара
@@ -472,6 +635,14 @@ private class GameState(
 
         if (invulnerableTimer > 0f) invulnerableTimer -= dt
 
+        if (victoryDelayTimer > 0f) {
+            victoryDelayTimer -= dt
+            if (victoryDelayTimer <= 0f) {
+                showVictoryDialog = true
+                gameOver = true
+            }
+        }
+
         if (activeRapidFire > 0f) activeRapidFire = (activeRapidFire - dt).coerceAtLeast(0f)
         if (activeTriple > 0f)    activeTriple    = (activeTriple - dt).coerceAtLeast(0f)
         if (activePierce > 0f)    activePierce    = (activePierce - dt).coerceAtLeast(0f)
@@ -487,26 +658,50 @@ private class GameState(
             }
         }
 
-        // Автострельба
-        val fireInterval = if (activeRapidFire > 0f) FIRE_INTERVAL * 0.5f else FIRE_INTERVAL
-        fireTimer += dt
-        if (fireTimer >= fireInterval) {
-            fireTimer = 0f
-            if (activeTriple > 0f) {
-                shootBullet(-20f)
-                shootBullet(0f)
-                shootBullet(20f)
-            } else {
-                shootBullet(0f)
+        // Стрельба
+        if (isTouching) {
+            val fireInterval = if (activeRapidFire > 0f) FIRE_INTERVAL * 0.5f else FIRE_INTERVAL
+            fireTimer += dt
+            if (fireTimer >= fireInterval) {
+                fireTimer = 0f
+                if (activeTriple > 0f) {
+                    shootBullet(-20f)
+                    shootBullet(0f)
+                    shootBullet(20f)
+                } else {
+                    shootBullet(0f)
+                }
             }
+        } else {
+            fireTimer = 0f
         }
 
         // Спавн врагов
-        spawnTimer += dt
-        val interval = (BASE_SPAWN - elapsed * 0.020f).coerceAtLeast(MIN_SPAWN)
-        if (spawnTimer >= interval) {
-            spawnTimer = 0f
-            spawnEnemy()
+        if (!bossSpawned) {
+            if (score < BOSS_TRIGGER_SCORE) {
+                spawnTimer += dt
+                val interval = (BASE_SPAWN - elapsed * 0.020f).coerceAtLeast(MIN_SPAWN)
+                if (spawnTimer >= interval) {
+                    spawnTimer = 0f
+                    spawnEnemy()
+                }
+            } else {
+                if (enemies.isEmpty()) {
+                    bossSpawned = true
+                    val targetY = height * BOSS_Y_FRACTION
+                    boss = Boss(
+                        x = width / 2f,
+                        y = -BOSS_HALF_HEIGHT - 50f,   // стартует за экраном
+                        hp = BOSS_HP,
+                        maxHp = BOSS_HP
+                    ).also {
+                        it.entryTimer = BOSS_ENTRY_DURATION
+                        it.targetY = targetY
+                    }
+                }
+            }
+        } else {
+            updateBoss(dt)
         }
 
         // Прожектайлы
@@ -635,6 +830,14 @@ private class GameState(
             p.life -= dt
         }
         particles.removeAll { it.life <= 0f }
+
+        // Ударные волны
+        shockwaves.forEach { sw ->
+            sw.life -= dt
+            val t = 1f - (sw.life / sw.maxLife).coerceIn(0f, 1f)
+            sw.radius = 10f + (sw.maxRadius - 10f) * t
+        }
+        shockwaves.removeAll { it.life <= 0f }
 
         // Бонусы: падают и подбираются
         powerUps.forEach { p ->
@@ -801,6 +1004,429 @@ private class GameState(
         }
     }
 
+    // Точная проверка попадания по маске босса.
+    // Если маски нет — возвращает false, тогда используется fallback-прямоугольник.
+    private fun bossHitAt(bx: Float, by: Float): Boolean {
+        val mask = bossMaskBitmap ?: return false
+        val pixels = bossMaskPixels ?: return false
+        val b = boss ?: return false
+        val halfW = BOSS_HALF_HEIGHT * BOSS_ASPECT
+
+        val xRatio = (bx - (b.x - halfW)) / (halfW * 2f)
+        val yRatio = (by - (b.y - BOSS_HALF_HEIGHT)) / (BOSS_HALF_HEIGHT * 2f)
+
+        if (xRatio < 0f || xRatio > 1f || yRatio < 0f || yRatio > 1f) return false
+
+        val px = (xRatio * mask.width).toInt().coerceIn(0, mask.width - 1)
+        val py = (yRatio * mask.height).toInt().coerceIn(0, mask.height - 1)
+        return android.graphics.Color.alpha(pixels[py * mask.width + px]) > 0
+    }
+
+    private fun bulletHitsBoss(bul: Bullet): Boolean {
+        val b = boss ?: return false
+        if (bossMaskPixels != null) {
+            // Пульс летит вверх — проверяем верхнюю часть снаряда
+            if (bossHitAt(bul.x, bul.y)) return true
+            if (bossHitAt(bul.x, bul.y - 10f)) return true
+            if (bossHitAt(bul.x, bul.y - 20f)) return true
+            return false
+        }
+        // Fallback: прямоугольник
+        val halfW = BOSS_HALF_HEIGHT * BOSS_ASPECT
+        return abs(bul.x - b.x) < halfW * 0.9f &&
+                abs(bul.y - b.y) < BOSS_HALF_HEIGHT * 0.9f
+    }
+
+    // БОСС
+    private fun updateBoss(dt: Float) {
+        val b = boss ?: return
+        if (b.dead) return
+
+        if (!b.entered) {
+            b.entryTimer -= dt
+            val t = 1f - (b.entryTimer / BOSS_ENTRY_DURATION).coerceIn(0f, 1f)
+            // Плавная кривая: slow start → fast → slow end
+            val easeT = t * t * (3f - 2f * t)
+            val startY = -BOSS_HALF_HEIGHT - 50f
+            b.y = startY + (b.targetY - startY) * easeT
+
+            if (b.entryTimer <= 0f) {
+                b.y = b.targetY
+                b.entered = true
+                b.phase = BossPhase.RECOVERY
+                b.phaseTimer = 0f
+            }
+            return
+        }
+
+        if (b.dying) {
+            b.deathTimer -= dt
+            b.deathExplosionTimer -= dt
+
+            if (b.deathExplosionTimer <= 0f) {
+                b.deathExplosionTimer = BOSS_DEATH_EXPLOSION_INTERVAL
+                val halfW = BOSS_HALF_HEIGHT * BOSS_ASPECT
+                repeat(3) {
+                    val ex = b.x + (rng.nextFloat() - 0.5f) * halfW * 2f
+                    val ey = b.y + (rng.nextFloat() - 0.5f) * BOSS_HALF_HEIGHT * 2f
+                    spawnExplosion(ex, ey, Color(0xFFFFA53D))
+                }
+            }
+
+            if (b.deathTimer <= 0f) {
+                val halfW = BOSS_HALF_HEIGHT * BOSS_ASPECT
+
+                repeat(12) {
+                    val ex = b.x + (rng.nextFloat() - 0.5f) * halfW * 2f
+                    val ey = b.y + (rng.nextFloat() - 0.5f) * BOSS_HALF_HEIGHT * 2f
+                    spawnExplosion(ex, ey, Color(0xFFFFA53D))
+                }
+
+                spawnBigExplosion(b.x, b.y)
+
+                spawnShockwave(b.x, b.y)
+
+                b.dead = true
+                bossDefeated = true
+                victoryDelayTimer = BOSS_VICTORY_DELAY
+            }
+
+            bossMissiles.forEach { m ->
+                m.x += m.vx * dt; m.y += m.vy * dt
+            }
+            bossBullets.forEach { bb ->
+                bb.x += bb.vx * dt; bb.y += bb.vy * dt
+            }
+            return
+        }
+
+        when (b.phase) {
+            BossPhase.RECOVERY -> {
+                b.phaseTimer += dt
+                if (b.phaseTimer >= BOSS_RECOVERY_TIME) {
+                    b.phase = BossPhase.ATTACK
+                    b.phaseTimer = 0f
+                    b.attackElapsed = 0f
+                    b.shotTimer = 0f
+                    b.shotsFired = 0
+                    b.currentAttack = pickNextAttack(b.lastAttack)
+                    b.lastAttack = b.currentAttack
+                    startAttack(b)
+                }
+            }
+            BossPhase.ATTACK -> {
+                b.attackElapsed += dt
+                when (b.currentAttack) {
+                    BossAttack.MISSILES -> tickMissilesAttack(b)
+                    BossAttack.SPREAD   -> tickSpreadAttack(b, dt)
+                    BossAttack.MINIONS  -> tickMinionsAttack(b)
+                    BossAttack.AIMED    -> tickAimedAttack(b, dt)
+                }
+            }
+        }
+
+        // Ракеты самонаводящиеся
+        bossMissiles.forEach { m ->
+            val dx = player.x - m.x
+            val dy = player.y - m.y
+            val len = kotlin.math.sqrt(dx * dx + dy * dy)
+            if (len > 0.01f) {
+                val tvx = dx / len * MISSILE_SPEED
+                val tvy = dy / len * MISSILE_SPEED
+                m.vx += (tvx - m.vx) * MISSILE_TURN * dt
+                m.vy += (tvy - m.vy) * MISSILE_TURN * dt
+            }
+            m.x += m.vx * dt
+            m.y += m.vy * dt
+        }
+        bossMissiles.removeAll {
+            it.dead || it.y > height + 100f || it.y < -100f ||
+                    it.x < -100f || it.x > width + 100f
+        }
+
+        // Снаряды
+        bossBullets.forEach { bb ->
+            bb.x += bb.vx * dt
+            bb.y += bb.vy * dt
+        }
+        bossBullets.removeAll {
+            it.dead || it.y > height + 60f || it.y < -60f ||
+                    it.x < -60f || it.x > width + 60f
+        }
+
+        // Миньоны
+        bossMinions.forEach { m ->
+            if (m.dead) return@forEach
+            m.ageTimer += dt
+            if (!m.landed) {
+                val t = (m.ageTimer / MINION_FLY_TIME).coerceIn(0f, 1f)
+                m.y = -50f + (m.targetY - (-50f)) * t
+                if (t >= 1f) {
+                    m.landed = true
+                    m.shootTimer = 0f
+                }
+            } else {
+                val accelStart = MINION_ACCEL_START_TIME
+                val interval = if (m.ageTimer < accelStart) {
+                    MINION_FIRE_INTERVAL_START
+                } else {
+                    val k = ((m.ageTimer - accelStart) / MINION_ACCEL_DURATION)
+                        .coerceIn(0f, 1f)
+                    MINION_FIRE_INTERVAL_START +
+                            (MINION_FIRE_INTERVAL_MIN - MINION_FIRE_INTERVAL_START) * k
+                }
+                m.shootTimer += dt
+                if (m.shootTimer >= interval) {
+                    m.shootTimer = 0f
+                    fireMinionBullet(m)
+                }
+            }
+        }
+
+        // Пули игрока по ракетам
+        for (bul in bullets) {
+            if (bul.dead) continue
+            for (m in bossMissiles) {
+                if (m.dead) continue
+                if (abs(bul.x - m.x) < 22f && abs(bul.y - m.y) < 22f) {
+                    bul.dead = true
+                    m.hp -= 1
+                    if (m.hp <= 0) {
+                        m.dead = true
+                        spawnExplosion(m.x, m.y, Color(0xFFFF5252))
+                        if (rng.nextFloat() < MISSILE_DROP_CHANCE) {
+                            val t = rollPowerUp()
+                            if (t != null && powerUps.size < POWERUP_MAX_ON_SCREEN) {
+                                powerUps.add(PowerUp(x = m.x, y = m.y, type = t))
+                            }
+                        }
+                    }
+                    break
+                }
+            }
+        }
+
+        // Пули игрока по приспешникам
+        for (bul in bullets) {
+            if (bul.dead) continue
+            for (m in bossMinions) {
+                if (m.dead || !m.landed) continue
+                if (abs(bul.x - m.x) < EnemyType.SMALL.size &&
+                    abs(bul.y - m.y) < EnemyType.SMALL.size) {
+                    bul.dead = true
+                    m.dead = true
+                    score += EnemyType.SMALL.points
+                    spawnExplosion(m.x, m.y, EnemyType.SMALL.color)
+                    break
+                }
+            }
+        }
+
+        // Пули игрока по боссу
+        for (bul in bullets) {
+            if (bul.dead || bul.hitBoss) continue
+            if (bulletHitsBoss(bul)) {
+                bul.hitBoss = true
+
+                val damage = if (activePierce > 0f) 2 else 1
+                b.hp -= damage
+                if (b.hp <= 0 && !b.dying) {
+                    b.dying = true
+                    b.deathTimer = BOSS_DEATH_DURATION
+                    b.deathExplosionTimer = 0f
+                }
+                if (activePierce <= 0f) bul.dead = true
+            }
+        }
+
+        // Ракеты в игрока
+        for (m in bossMissiles) {
+            if (m.dead) continue
+            val dx = m.x - player.x
+            val dy = m.y - player.y
+            if (dx * dx + dy * dy < PLAYER_HITBOX * PLAYER_HITBOX * 4f) {
+                m.dead = true
+                spawnExplosion(m.x, m.y, Color(0xFFFF5252))
+                damagePlayer()
+            }
+        }
+
+        // Снаряды в игрока
+        for (bb in bossBullets) {
+            if (bb.dead) continue
+            val dx = bb.x - player.x
+            val dy = bb.y - player.y
+            val r = bb.radius + PLAYER_HITBOX
+            if (dx * dx + dy * dy < r * r) {
+                bb.dead = true
+                spawnExplosion(bb.x, bb.y, Color(0xFFFFA53D))
+                damagePlayer()
+            }
+        }
+
+        // Приспешники
+        for (m in bossMinions) {
+            if (m.dead || !m.landed) continue
+            val dx = m.x - player.x
+            val dy = m.y - player.y
+            val r = EnemyType.SMALL.size + PLAYER_HITBOX
+            if (dx * dx + dy * dy < r * r) {
+                m.dead = true
+                spawnExplosion(m.x, m.y, EnemyType.SMALL.color)
+                damagePlayer()
+            }
+        }
+    }
+
+    private fun damagePlayer() {
+        if (shieldTimer > 0f) {
+            shieldTimer = 0f
+            spawnExplosion(player.x, player.y, Color(0xFF00BFFF))
+        } else if (invulnerableTimer <= 0f) {
+            player.hp -= 1
+            invulnerableTimer = invulnerableDuration
+            if (player.hp <= 0) {
+                gameOver = true
+                spawnExplosion(player.x, player.y, Color(0xFF52D6FF))
+            }
+        }
+    }
+
+    private fun pickNextAttack(last: BossAttack?): BossAttack {
+        val all = BossAttack.values().toList()
+        val filtered = if (last != null) all.filter { it != last } else all
+        return filtered.random(rng)
+    }
+
+    private fun startAttack(b: Boss) {
+        when (b.currentAttack) {
+            BossAttack.MISSILES -> {
+                repeat(4) { i ->
+                    val angleRad = Math.toRadians((i * 90f).toDouble())
+                    val spawnR = BOSS_HALF_HEIGHT * BOSS_ASPECT * 0.6f
+                    val sx = b.x + kotlin.math.cos(angleRad).toFloat() * spawnR
+                    val sy = b.y + kotlin.math.sin(angleRad).toFloat() * BOSS_HALF_HEIGHT * 0.6f
+                    bossMissiles.add(
+                        BossMissile(x = sx, y = sy, vx = 0f, vy = 80f, hp = MISSILE_HP)
+                    )
+                }
+            }
+            BossAttack.SPREAD -> {
+                fireSpreadSalvo(b)
+                b.shotsFired = 1
+                b.shotTimer = 0f
+            }
+            BossAttack.MINIONS -> {
+                bossMinions.clear()
+                val positions = (0 until MINION_COUNT).map { i ->
+                    (i + 0.5f) / MINION_COUNT * width
+                }
+                val targetY = b.y + BOSS_HALF_HEIGHT + MINION_Y_OFFSET
+                positions.forEach { px ->
+                    bossMinions.add(
+                        BossMinion(x = px, targetY = targetY)
+                    )
+                }
+            }
+            BossAttack.AIMED -> {
+                b.shotTimer = AIMED_INTERVAL
+            }
+        }
+    }
+
+    private fun tickMissilesAttack(b: Boss) {
+        if (bossMissiles.isEmpty()) finishAttack(b)
+    }
+
+    private fun tickSpreadAttack(b: Boss, dt: Float) {
+        b.shotTimer += dt
+
+        if (b.shotsFired >= SPREAD_SALVOS) {
+            if (b.shotTimer >= SPREAD_FINISH_DELAY) {
+                finishAttack(b)
+            }
+            return
+        }
+
+        if (b.shotTimer >= SPREAD_DELAY_BETWEEN) {
+            fireSpreadSalvo(b)
+            b.shotsFired++
+            b.shotTimer = 0f
+        }
+    }
+
+    private fun tickMinionsAttack(b: Boss) {
+        if (bossMinions.all { it.dead }) {
+            bossMinions.clear()
+            finishAttack(b)
+        }
+    }
+
+    private fun tickAimedAttack(b: Boss, dt: Float) {
+        b.shotTimer += dt
+        if (b.shotTimer >= AIMED_INTERVAL) {
+            b.shotTimer = 0f
+            fireAimedShot(b)
+        }
+        if (b.attackElapsed >= AIMED_DURATION) finishAttack(b)
+    }
+
+    private fun finishAttack(b: Boss) {
+        b.phase = BossPhase.RECOVERY
+        b.phaseTimer = 0f
+        b.shotTimer = 0f
+        b.shotsFired = 0
+        b.attackElapsed = 0f
+    }
+
+    private fun fireSpreadSalvo(b: Boss) {
+        val angles = listOf(-25f, -12f, 0f, 12f, 25f)
+        for (deg in angles) {
+            val rad = Math.toRadians(deg.toDouble())
+            bossBullets.add(
+                BossBullet(
+                    x = b.x,
+                    y = b.y + BOSS_HALF_HEIGHT * 0.5f,
+                    vx = (SPREAD_SPEED * kotlin.math.sin(rad)).toFloat(),
+                    vy = (SPREAD_SPEED * kotlin.math.cos(rad)).toFloat(),
+                    radius = SPREAD_BULLET_RADIUS
+                )
+            )
+        }
+    }
+
+    private fun fireAimedShot(b: Boss) {
+        val dx = player.x - b.x
+        val dy = player.y - b.y
+        val len = kotlin.math.sqrt(dx * dx + dy * dy)
+        if (len < 0.01f) return
+        bossBullets.add(
+            BossBullet(
+                x = b.x,
+                y = b.y + BOSS_HALF_HEIGHT * 0.5f,
+                vx = dx / len * AIMED_BULLET_SPEED,
+                vy = dy / len * AIMED_BULLET_SPEED,
+                radius = AIMED_BULLET_RADIUS
+            )
+        )
+    }
+
+    private fun fireMinionBullet(m: BossMinion) {
+        val dx = player.x - m.x
+        val dy = player.y - m.y
+        val len = kotlin.math.sqrt(dx * dx + dy * dy)
+        if (len < 0.01f) return
+        bossBullets.add(
+            BossBullet(
+                x = m.x,
+                y = m.y,
+                vx = dx / len * MINION_BULLET_SPEED,
+                vy = dy / len * MINION_BULLET_SPEED,
+                radius = MINION_BULLET_RADIUS
+            )
+        )
+    }
+
     private fun spawnExplosion(x: Float, y: Float, color: Color) {
         repeat(12) {
             val a = rng.nextFloat() * 6.28f
@@ -816,6 +1442,80 @@ private class GameState(
                 )
             )
         }
+    }
+
+    private fun spawnBigExplosion(x: Float, y: Float) {
+        val colors = listOf(
+            Color(0xFFFFF3E0),
+            Color(0xFFFFD54F),
+            Color(0xFFFFA53D),
+            Color(0xFFFF5252),
+            Color(0xFFFF3B30)
+        )
+
+        repeat(30) {
+            val a = rng.nextFloat() * 6.28f
+            val sp = rng.nextFloat() * 100f + 350f    // быстрые
+            particles.add(
+                Particle(
+                    x = x, y = y,
+                    vx = cos(a) * sp,
+                    vy = sin(a) * sp,
+                    life = 0.9f, maxLife = 0.9f,
+                    color = colors[rng.nextInt(colors.size)],
+                    size = rng.nextFloat() * 8f + 8f   // крупные 8–16
+                )
+            )
+        }
+
+        repeat(50) {
+            val a = rng.nextFloat() * 6.28f
+            val sp = rng.nextFloat() * 200f + 150f
+            particles.add(
+                Particle(
+                    x = x, y = y,
+                    vx = cos(a) * sp,
+                    vy = sin(a) * sp,
+                    life = 0.7f, maxLife = 0.7f,
+                    color = colors[rng.nextInt(colors.size)],
+                    size = rng.nextFloat() * 5f + 3f    // средние 3–8
+                )
+            )
+        }
+
+        repeat(80) {
+            val a = rng.nextFloat() * 6.28f
+            val sp = rng.nextFloat() * 400f + 100f
+            particles.add(
+                Particle(
+                    x = x, y = y,
+                    vx = cos(a) * sp,
+                    vy = sin(a) * sp,
+                    life = 0.5f, maxLife = 0.5f,
+                    color = colors[rng.nextInt(colors.size)],
+                    size = rng.nextFloat() * 2f + 1.5f  // мелкие 1.5–3.5
+                )
+            )
+        }
+
+        repeat(40) {
+            val a = rng.nextFloat() * 6.28f
+            val sp = rng.nextFloat() * 250f + 80f
+            particles.add(
+                Particle(
+                    x = x, y = y,
+                    vx = cos(a) * sp,
+                    vy = sin(a) * sp,
+                    life = 1.4f, maxLife = 1.4f,
+                    color = Color(0xFFFFEB3B),
+                    size = 2f
+                )
+            )
+        }
+    }
+
+    private fun spawnShockwave(x: Float, y: Float) {
+        shockwaves.add(Shockwave(x = x, y = y))
     }
 
     fun draw(scope: DrawScope) {
@@ -1036,13 +1736,157 @@ private class GameState(
             }
         }
 
+        // БОСС
+        boss?.let { b ->
+            if (!b.dead) {
+                val halfW = BOSS_HALF_HEIGHT * BOSS_ASPECT
+                val deathProgress = if (b.dying)
+                    (1f - b.deathTimer / BOSS_DEATH_DURATION).coerceIn(0f, 1f)
+                else 0f
+                val scale = if (b.dying) (1f - deathProgress * 0.4f) else 1f
+                val alpha = if (b.dying) (1f - deathProgress * 0.5f) else 1f
+                val blink = if (b.dying)
+                    (b.deathTimer * 15f).toInt() % 2 == 0
+                else false
+
+                val drawW = halfW * scale
+                val drawH = BOSS_HALF_HEIGHT * scale
+
+                if (bossSprite != null && !blink) {
+                    scope.drawImage(
+                        image = bossSprite,
+                        dstOffset = IntOffset(
+                            (b.x - drawW).toInt(),
+                            (b.y - drawH).toInt()
+                        ),
+                        dstSize = IntSize(
+                            (drawW * 2f).toInt(),
+                            (drawH * 2f).toInt()
+                        ),
+                        alpha = alpha,
+                        filterQuality = androidx.compose.ui.graphics.FilterQuality.Low
+                    )
+                } else if (bossSprite == null) {
+                    scope.drawRect(
+                        Color(0xFFB26BFF),
+                        topLeft = Offset(b.x - halfW, b.y - BOSS_HALF_HEIGHT),
+                        size = Size(halfW * 2f, BOSS_HALF_HEIGHT * 2f)
+                    )
+                }
+
+                val barW = width * 0.7f
+                val barH = 12f
+                val barX = (width - barW) / 2f
+                val barY = 20f
+                scope.drawRect(
+                    Color(0x88000000),
+                    topLeft = Offset(barX, barY),
+                    size = Size(barW, barH)
+                )
+                val hpFrac = (b.hp.toFloat() / b.maxHp).coerceIn(0f, 1f)
+                scope.drawRect(
+                    Color(0xFFE53935),
+                    topLeft = Offset(barX, barY),
+                    size = Size(barW * hpFrac, barH)
+                )
+                scope.drawRect(
+                    Color.White,
+                    topLeft = Offset(barX, barY),
+                    size = Size(barW, barH),
+                    style = Stroke(width = 2f)
+                )
+            }
+        }
+
+        // Ракеты
+        bossMissiles.forEach { m ->
+            if (m.dead) return@forEach
+            val halfH = MISSILE_HALF_HEIGHT
+            val halfW = halfH * MISSILE_ASPECT
+            val speed = kotlin.math.sqrt(m.vx * m.vx + m.vy * m.vy)
+            if (missileSprite != null && speed > 0.01f) {
+                val angleRad = kotlin.math.atan2(m.vy.toDouble(), m.vx.toDouble())
+                val angleDeg = Math.toDegrees(angleRad).toFloat() - 90f
+                scope.rotate(
+                    degrees = angleDeg,
+                    pivot = Offset(m.x, m.y)
+                ) {
+                    drawImage(
+                        image = missileSprite,
+                        dstOffset = IntOffset(
+                            (m.x - halfW).toInt(),
+                            (m.y - halfH).toInt()
+                        ),
+                        dstSize = IntSize(
+                            (halfW * 2f).toInt(),
+                            (halfH * 2f).toInt()
+                        ),
+                        filterQuality = androidx.compose.ui.graphics.FilterQuality.Low
+                    )
+                }
+            } else {
+                scope.drawRect(
+                    Color(0xFFFF5252),
+                    topLeft = Offset(m.x - 10f, m.y - 10f),
+                    size = Size(20f, 20f)
+                )
+            }
+        }
+
+        // Приспешники
+        bossMinions.forEach { m ->
+            if (m.dead) return@forEach
+            if (enemySmallSprite != null) {
+                scope.drawImage(
+                    image = enemySmallSprite,
+                    dstOffset = IntOffset(
+                        (m.x - EnemyType.SMALL.size).toInt(),
+                        (m.y - EnemyType.SMALL.size).toInt()
+                    ),
+                    dstSize = IntSize(
+                        (EnemyType.SMALL.size * 2f).toInt(),
+                        (EnemyType.SMALL.size * 2f).toInt()
+                    ),
+                    filterQuality = androidx.compose.ui.graphics.FilterQuality.Low
+                )
+            } else {
+                scope.drawRect(
+                    EnemyType.SMALL.color,
+                    topLeft = Offset(m.x - EnemyType.SMALL.size, m.y - EnemyType.SMALL.size),
+                    size = Size(EnemyType.SMALL.size * 2f, EnemyType.SMALL.size * 2f)
+                )
+            }
+        }
+
+        // Снаряды босса и приспешников
+        bossBullets.forEach { bb ->
+            if (bb.dead) return@forEach
+            val r = bb.radius
+            scope.drawCircle(
+                color = BULLET_COLOR_HALO,
+                radius = r * 1.6f,
+                center = Offset(bb.x, bb.y)
+            )
+            scope.drawCircle(
+                color = BULLET_COLOR_MID,
+                radius = r,
+                center = Offset(bb.x, bb.y)
+            )
+            scope.drawCircle(
+                color = BULLET_COLOR_CORE,
+                radius = r * 0.4f,
+                center = Offset(bb.x, bb.y)
+            )
+        }
+
         // Частицы
         particles.forEach { p ->
             val a = (p.life / p.maxLife).coerceIn(0f, 1f)
+            val s = p.size
             scope.drawRect(
                 p.color.copy(alpha = a),
-                topLeft = Offset(p.x - 2f, p.y - 2f),
-                size = Size(4f, 4f)
+                topLeft = Offset(p.x - s / 2f, p.y - s / 2f),
+                size = Size(s, s)
             )
         }
 
@@ -1064,6 +1908,26 @@ private class GameState(
                 )
             }
         }
+
+        // Ударные волны
+        shockwaves.forEach { sw ->
+            val lifeT = (sw.life / sw.maxLife).coerceIn(0f, 1f)
+            val alpha = (lifeT * 0.9f).coerceIn(0f, 1f)
+            val strokeW = 6f * lifeT + 2f
+
+            scope.drawCircle(
+                color = sw.color.copy(alpha = alpha),
+                radius = sw.radius,
+                center = Offset(sw.x, sw.y),
+                style = Stroke(width = strokeW)
+            )
+            scope.drawCircle(
+                color = Color(0xFFFFF3E0).copy(alpha = (alpha * 0.5f)),
+                radius = sw.radius + 8f,
+                center = Offset(sw.x, sw.y),
+                style = Stroke(width = strokeW * 0.5f)
+            )
+        }
     }
 }
 
@@ -1072,7 +1936,8 @@ private class Player(var x: Float, var y: Float, var hp: Int, var maxHp: Int)
 private class Bullet(
     var x: Float, var y: Float,
     var vx: Float = 0f, var vy: Float = -BULLET_SPEED,
-    var dead: Boolean = false
+    var dead: Boolean = false,
+    var hitBoss: Boolean = false
 )
 private class Star(
     var x: Float, var y: Float, var size: Float,
@@ -1080,8 +1945,19 @@ private class Star(
 )
 private class Particle(
     var x: Float, var y: Float, var vx: Float, var vy: Float,
-    var life: Float, var maxLife: Float, var color: Color
+    var life: Float, var maxLife: Float, var color: Color,
+    var size: Float = 4f
 )
+
+private class Shockwave(
+    var x: Float, var y: Float,
+    var radius: Float = 10f,
+    var maxRadius: Float = 600f,
+    var life: Float = 0.8f,
+    var maxLife: Float = 0.8f,
+    var color: Color = Color(0xFFFFA53D)
+)
+
 private class Enemy(
     var x: Float, var y: Float, var baseX: Float,
     var vx: Float, var vy: Float,
@@ -1095,6 +1971,62 @@ private class Enemy(
 }
 
 private enum class EnemyPattern { STRAIGHT, SINE, ZIGZAG, HOMING }
+
+// ─── БОСС ───
+private enum class BossAttack { MISSILES, SPREAD, MINIONS, AIMED }
+
+private enum class BossPhase { RECOVERY, ATTACK }
+
+private class Boss(
+    var x: Float,
+    var y: Float,
+    var hp: Int,
+    var maxHp: Int,
+    var dead: Boolean = false
+) {
+    var entryTimer: Float = 0f
+    var targetY: Float = y
+    var entered: Boolean = false
+
+    var phase: BossPhase = BossPhase.RECOVERY
+    var phaseTimer: Float = 0f
+    var currentAttack: BossAttack = BossAttack.MISSILES
+    var lastAttack: BossAttack? = null
+    var shotTimer: Float = 0f
+    var shotsFired: Int = 0
+    var attackElapsed: Float = 0f
+    var dying: Boolean = false
+    var deathTimer: Float = 0f
+    var deathExplosionTimer: Float = 0f
+}
+
+private class BossMissile(
+    var x: Float,
+    var y: Float,
+    var vx: Float,
+    var vy: Float,
+    var hp: Int,
+    var dead: Boolean = false
+)
+
+private class BossMinion(
+    var x: Float,
+    var targetY: Float,
+    var y: Float = -50f,
+    var landed: Boolean = false,
+    var ageTimer: Float = 0f,
+    var shootTimer: Float = 0f,
+    var dead: Boolean = false
+)
+
+private class BossBullet(
+    var x: Float,
+    var y: Float,
+    var vx: Float,
+    var vy: Float,
+    val radius: Float,
+    var dead: Boolean = false
+)
 
 // БОНУСЫ
 private enum class PowerUpType(
