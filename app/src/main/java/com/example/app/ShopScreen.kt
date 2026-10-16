@@ -38,6 +38,14 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.runtime.snapshotFlow
 
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 @Composable
@@ -95,10 +103,42 @@ fun ShopScreen(
     val context = LocalContext.current
     remember { ShopCatalog.load(context); 0 }
 
-    var cart by remember { mutableStateOf(storage.getCart()) }
-    var selectedCategory by remember {
-        mutableStateOf(ShopCatalog.categories.firstOrNull()?.id ?: "")
+    val specialsSorted = remember {
+        ShopCatalog.products
+            .filter { it.categoryId == "special" }
+            .sortedBy { it.price }
     }
+
+    val productsForPet = remember(currentPetType) {
+        ShopCatalog.products.filter { it.fitsPet(currentPetType) }
+    }
+
+    val productsByCategory = remember(productsForPet) {
+        productsForPet.groupBy { it.categoryId }
+    }
+
+    var cart by remember { mutableStateOf(storage.getCart()) }
+    val categoryList = remember { ShopCatalog.categories }
+    val inventorySnapshot = remember(cart) { storage.getInventory() }
+    val goalNameSnapshot = remember(cart) { storage.goalName }
+    val goalPriceSnapshot = remember(cart) { storage.goalPrice }
+    val coinsSnapshot = remember(cart) { storage.coins }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { categoryList.size }
+    )
+    val selectedCategory = categoryList.getOrNull(pagerState.currentPage)?.id ?: ""
+    val chipPositions = remember { mutableMapOf<Int, Int>() }
+
+    val scope = rememberCoroutineScope()
+    val categoryScrollState = rememberScrollState()
+
+    LaunchedEffect(pagerState.currentPage) {
+        val page = pagerState.currentPage
+        val chipX = chipPositions[page] ?: return@LaunchedEffect
+        categoryScrollState.animateScrollTo(chipX.coerceAtLeast(0))
+    }
+
     var lockedMessage by remember { mutableStateOf<String?>(null) }
     var goalConfirmProduct by remember { mutableStateOf<ShopProduct?>(null) }
     var goalMessage by remember { mutableStateOf<String?>(null) }
@@ -146,19 +186,25 @@ fun ShopScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
+                    .horizontalScroll(categoryScrollState)
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ShopCatalog.categories.forEach { category ->
+                ShopCatalog.categories.forEachIndexed { index, category ->
                     val selected = category.id == selectedCategory
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = if (selected) Color(0xFF81C784) else Color.White,
                         shadowElevation = if (selected) 3.dp else 1.dp,
-                        modifier = Modifier.noRippleClickable {
-                            selectedCategory = category.id
-                        }
+                        modifier = Modifier
+                            .onGloballyPositioned { coords ->
+                                chipPositions[index] = coords.positionInParent().x.toInt()
+                            }
+                            .noRippleClickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -175,140 +221,115 @@ fun ShopScreen(
                 }
             }
 
-            // Описание выбранной категории
-            val selectedDescription = ShopCatalog
-                .categoryById(selectedCategory)?.description
-            if (!selectedDescription.isNullOrBlank()) {
-                Text(
-                    selectedDescription,
-                    fontSize = 12.sp,
-                    color = Color(0xFF888888),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 4.dp)
-                )
-            }
-
             Spacer(Modifier.height(8.dp))
 
-            // Список товаров
-            val allInCategory = ShopCatalog.products
-                .filter { it.categoryId == selectedCategory }
-                .filter { it.fitsPet(currentPetType) }
-
-            // Особые товары
-            val productsInCategory = if (selectedCategory == "special") {
-                allInCategory.filter { product ->
-                    val inInventory = storage.getInventoryQuantity(product.id) > 0
-                    val isCurrentGoal =
-                        storage.goalName == product.displayName(petGenitive) &&
-                                storage.goalPrice == product.price
-                    !inInventory && !isCurrentGoal
-                }
-            } else {
-                allInCategory
-            }
-
-            val specials = ShopCatalog.products
-                .filter { it.categoryId == "special" }
-                .sortedBy { it.price }
-
-            fun isLocked(product: ShopProduct): Boolean {
-                if (selectedCategory != "special") return false
-                val idx = specials.indexOfFirst { it.id == product.id }
-                if (idx <= 0) return false
-                return (0 until idx).any { i ->
-                    storage.getInventoryQuantity(specials[i].id) == 0
-                }
-            }
-
-            Column(
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-            ) {
-                // Подсказка для категории «Особые товары»
-                if (selectedCategory == "special") {
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFFFFF8E1),
-                        shadowElevation = 1.dp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                "Товары из этой категории необязательны. " +
-                                        "Не все из них влияют на питомца. " +
-                                        "Копи монеты, чтобы их купить — это твои маленькие мечты.",
-                                fontSize = 13.sp,
-                                color = Color(0xFF6D4C41),
-                                fontWeight = FontWeight.Medium
-                            )
+            ) { page ->
+                val categoryId = categoryList.getOrNull(page)?.id ?: ""
+
+                val productsInCategory = remember(categoryId, cart) {
+                    val allInCategory = productsByCategory[categoryId].orEmpty()
+                    if (categoryId == "special") {
+                        allInCategory.filter { product ->
+                            val inInventory = (inventorySnapshot[product.id] ?: 0) > 0
+                            val isCurrentGoal =
+                                goalNameSnapshot == product.displayName(petGenitive) &&
+                                        goalPriceSnapshot == product.price
+                            !inInventory && !isCurrentGoal
                         }
+                    } else {
+                        allInCategory
                     }
                 }
 
-                if (productsInCategory.isEmpty()) {
-                    // Пустая категория
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("📦", fontSize = 64.sp)
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                "Скоро товары данной категории\nпоступят в продажу",
-                                fontSize = 16.sp,
-                                color = Color(0xFF888888),
-                                textAlign = TextAlign.Center
-                            )
+                Column(modifier = Modifier.fillMaxSize()) {
+
+                    // Подсказка для категории «Особые товары»
+                    if (categoryId == "special") {
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFFFFF8E1),
+                            shadowElevation = 1.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    "Товары из этой категории необязательны. " +
+                                            "Не все из них влияют на питомца. " +
+                                            "Копи монеты, чтобы их купить — это твои маленькие мечты.",
+                                    fontSize = 13.sp,
+                                    color = Color(0xFF6D4C41),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(productsInCategory, key = { it.id }) { product ->
-                            val locked = isLocked(product)
-                            ProductCard(
-                                product = product,
-                                petGenitive = petGenitive,
-                                quantity = cart[product.id] ?: 0,
-                                locked = locked,
-                                storage = storage,
-                                onAdd = {
-                                    val current = cart[product.id] ?: 0
-                                    // Особые — только по одной штуке
-                                    val maxQty = if (product.categoryId == "special") 1 else 99
-                                    val newQty = (current + 1).coerceAtMost(maxQty)
-                                    cart = cart.toMutableMap().apply { put(product.id, newQty) }
-                                    storage.setCartQuantity(product.id, newQty)
-                                },
-                                onRemove = {
-                                    val current = cart[product.id] ?: 0
-                                    val newQty = (current - 1).coerceAtLeast(0)
-                                    val newCart = cart.toMutableMap()
-                                    if (newQty == 0) newCart.remove(product.id)
-                                    else newCart[product.id] = newQty
-                                    cart = newCart
-                                    storage.setCartQuantity(product.id, newQty)
-                                },
-                                onLockedClick = {
-                                    lockedMessage = "Сначала купи предыдущие особые товары."
-                                },
-                                onSetGoal = { goalConfirmProduct = product }
-                            )
+
+                    if (productsInCategory.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("📦", fontSize = 64.sp)
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    "Скоро товары данной категории\nпоступят в продажу",
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF888888),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(productsInCategory, key = { it.id }) { product ->
+                                val specialIdx = specialsSorted.indexOfFirst { it.id == product.id }
+                                val locked = isLocked(specialIdx, specialsSorted, categoryId, inventorySnapshot)
+
+                                ProductCard(
+                                    product = product,
+                                    petGenitive = petGenitive,
+                                    quantity = cart[product.id] ?: 0,
+                                    locked = locked,
+                                    storage = storage,
+                                    onAdd = {
+                                        val current = cart[product.id] ?: 0
+                                        val maxQty = if (product.categoryId == "special") 1 else 99
+                                        val newQty = (current + 1).coerceAtMost(maxQty)
+                                        cart = cart.toMutableMap().apply { put(product.id, newQty) }
+                                        storage.setCartQuantity(product.id, newQty)
+                                    },
+                                    onRemove = {
+                                        val current = cart[product.id] ?: 0
+                                        val newQty = (current - 1).coerceAtLeast(0)
+                                        val newCart = cart.toMutableMap()
+                                        if (newQty == 0) newCart.remove(product.id)
+                                        else newCart[product.id] = newQty
+                                        cart = newCart
+                                        storage.setCartQuantity(product.id, newQty)
+                                    },
+                                    onLockedClick = {
+                                        lockedMessage = "Сначала купи предыдущие особые товары."
+                                    },
+                                    onSetGoal = { goalConfirmProduct = product }
+                                )
+                            }
                         }
                     }
                 }
@@ -438,8 +459,11 @@ private fun ProductCard(
                         )
                         Spacer(Modifier.width(4.dp))
                     }
+                    val priceText = remember(displayPrice) {
+                        "$displayPrice ${coinsWord(displayPrice)}"
+                    }
                     Text(
-                        "${displayPrice} ${coinsWord(displayPrice)}",
+                        priceText,
                         fontSize = 13.sp,
                         color = if (hasDiscount) Color(0xFF4CAF50) else Color(0xFF888888),
                         fontWeight = if (hasDiscount) FontWeight.Medium else FontWeight.Normal
@@ -601,6 +625,19 @@ private fun ProductCard(
                 }
             }
         }
+    }
+}
+
+private fun isLocked(
+    productIndex: Int,
+    specialsSorted: List<ShopProduct>,
+    categoryId: String,
+    inventory: Map<String, Int>
+): Boolean {
+    if (categoryId != "special") return false
+    if (productIndex <= 0) return false
+    return (0 until productIndex).any { i ->
+        (inventory[specialsSorted[i].id] ?: 0) == 0
     }
 }
 
