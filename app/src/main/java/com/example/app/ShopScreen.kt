@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 @Composable
@@ -161,8 +164,6 @@ fun ShopScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
-                            Text(category.emoji, fontSize = 18.sp)
-                            Spacer(Modifier.width(6.dp))
                             Text(
                                 category.name,
                                 fontSize = 15.sp,
@@ -454,29 +455,51 @@ private fun ProductCard(
                         if (hasHunger) {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = Color(0xFFFFF3E0)
+                                color = Color(0xFFF0F0F0)
                             ) {
-                                Text(
-                                    "🍽️ +${product.hungerEffect}",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFFE65100),
-                                    fontWeight = FontWeight.Medium,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(hungerIconRes(100)),
+                                        contentDescription = null,
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(
+                                        "+${product.hungerEffect}",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFFE65100),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                         if (hasHappiness) {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = Color(0xFFFFEBEE)
+                                color = Color(0xFFF0F0F0)
                             ) {
-                                Text(
-                                    "😊 +${product.happinessEffect}",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFFC62828),
-                                    fontWeight = FontWeight.Medium,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(moodIconRes(100)),
+                                        contentDescription = null,
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(
+                                        "+${product.happinessEffect}",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFFC62828),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }

@@ -156,7 +156,12 @@ internal fun BoxScope.MainHud(
                     HudBounds.map["Настройки"] = it.boundsInRoot()
                 }
         ) {
-            Text("⚙️", fontSize = 26.sp)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_settings),
+                contentDescription = "Настройки",
+                modifier = Modifier.size(40.dp),
+                tint = Color.Unspecified
+            )
         }
     }
 

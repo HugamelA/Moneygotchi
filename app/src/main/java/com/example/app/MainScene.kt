@@ -31,7 +31,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.geometry.Rect
 
 // СЦЕНА: ФОН, ПИТОМЕЦ, ЗОНЫ
 @Composable
@@ -105,11 +108,51 @@ internal fun RoomSceneLayer(
             PetAssets.loadMaskBitmap(context, species, moodStr, stageStr)
         }
 
+        LaunchedEffect(petMask) {
+            val mask = petMask
+            if (mask == null) {
+                PetBounds.bounds.value = null
+                return@LaunchedEffect
+            }
+
+            val rect = withContext(Dispatchers.Default) {
+                val pixels = IntArray(mask.width * mask.height)
+                mask.getPixels(pixels, 0, mask.width, 0, 0, mask.width, mask.height)
+
+                var left = mask.width
+                var top = mask.height
+                var right = 0
+                var bottom = 0
+
+                for (y in 0 until mask.height) {
+                    val rowOffset = y * mask.width
+                    for (x in 0 until mask.width) {
+                        val alpha = (pixels[rowOffset + x] ushr 24) and 0xFF
+                        if (alpha > 0) {
+                            if (x < left) left = x
+                            if (x > right) right = x
+                            if (y < top) top = y
+                            if (y > bottom) bottom = y
+                        }
+                    }
+                }
+
+                if (right < left || bottom < top) null
+                else Rect(
+                    left = left.toFloat() / mask.width,
+                    top = top.toFloat() / mask.height,
+                    right = right.toFloat() / mask.width,
+                    bottom = bottom.toFloat() / mask.height
+                )
+            }
+
+            PetBounds.bounds.value = rect
+        }
+
         val petImageRequest = remember(petImagePath) {
             if (petImagePath != null) {
                 ImageRequest.Builder(context)
                     .data(petImagePath)
-                    .crossfade(500)
                     .build()
             } else null
         }
