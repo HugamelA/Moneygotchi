@@ -107,7 +107,7 @@ fun CoinsScreen(
                 Text(
                     "Назад",
                     fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color(0xFF5D4037),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }

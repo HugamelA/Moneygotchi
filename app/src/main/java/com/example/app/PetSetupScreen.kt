@@ -28,6 +28,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 // ЭКРАН СОЗДАНИя ПИТОМЦА
 @Composable
@@ -50,7 +55,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Фон: магазин
+        //Фон магазина
         Image(
             painter = painterResource(id = R.drawable.shop_bg),
             contentDescription = null,
@@ -58,6 +63,24 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
             contentScale = ContentScale.FillBounds
         )
 
+        //Карусель
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val isCurrent = (page == currentPage)
+            Image(
+                painter = painterResource(id = petOptions[page].images[0]),
+                contentDescription = petOptions[page].name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = -30.dp)
+                    .alpha(if (isCurrent) 1f else 0.55f),
+                contentScale = ContentScale.FillBounds // Идеально совпадает с главным экраном
+            )
+        }
+
+        //Интерфейс (Панель, кнопки)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,17 +88,16 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Верхняя панель: заголовок + имя
+            // Верхняя панель
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .background(
-                        Color.White.copy(alpha = 0.92f),
-                        RoundedCornerShape(20.dp)
-                    )
+                    .height(180.dp)
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .background(Color.White.copy(alpha = 0.92f), RoundedCornerShape(20.dp))
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     "Выбери питомца",
@@ -87,35 +109,24 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { input ->
-                        val cyr = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" +
-                                "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-                        val lat = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-                                "abcdefghijklmnopqrstuvwxyz"
-
+                        val cyr = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+                        val lat = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                         val hasCyr = input.any { it in cyr }
                         val hasLat = input.any { it in lat }
-
                         val filtered = when {
                             hasCyr && hasLat -> {
                                 val firstLetter = input.firstOrNull { it.isLetter() }
-                                if (firstLetter != null && firstLetter in cyr) {
-                                    input.filter { it in cyr }
-                                } else {
-                                    input.filter { it in lat }
-                                }
+                                if (firstLetter != null && firstLetter in cyr) input.filter { it in cyr }
+                                else input.filter { it in lat }
                             }
                             else -> input
                         }
-
                         name = filtered.filter { it.isLetter() }.take(12)
                     },
                     label = { Text("Имя питомца") },
                     supportingText = {
                         if (name.isNotEmpty() && name.trim().length < 2) {
-                            Text(
-                                "Не короче 2 букв",
-                                color = Color(0xFFE53935)
-                            )
+                            Text("Не короче 2 букв", color = Color(0xFFE53935))
                         } else {
                             Text("${name.length} / 12")
                         }
@@ -125,32 +136,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                 )
             }
 
-            // Карусель питомцев
-            HorizontalPager(
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = 60.dp),
-                pageSpacing = 12.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) { page ->
-                val isCurrent = (page == currentPage)
-
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Image(
-                        painter = painterResource(id = petOptions[page].images[0]),
-                        contentDescription = petOptions[page].name,
-                        modifier = Modifier
-                            .scale(if (isCurrent) 1f else 0.8f)
-                            .alpha(if (isCurrent) 1f else 0.55f)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.weight(1f))
 
             // Название текущего питомца
             Text(
@@ -159,10 +145,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier
-                    .background(
-                        Color.Black.copy(alpha = 0.45f),
-                        RoundedCornerShape(12.dp)
-                    )
+                    .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             )
 
@@ -178,8 +161,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                         modifier = Modifier
                             .size(if (idx == currentPage) 12.dp else 8.dp)
                             .background(
-                                if (idx == currentPage) Color.White
-                                else Color.White.copy(alpha = 0.5f),
+                                if (idx == currentPage) Color.White else Color.White.copy(alpha = 0.5f),
                                 RoundedCornerShape(50)
                             )
                     )
@@ -199,9 +181,10 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                     storage.petAppearance = pagerState.currentPage
                     onDone()
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A9DB8)),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
                     .height(60.dp)
             ) {
                 Text("Далее", fontSize = 22.sp)

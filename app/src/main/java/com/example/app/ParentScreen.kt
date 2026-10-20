@@ -57,7 +57,7 @@ fun ParentScreen(
                     onClick = onBack,
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text("Назад", fontSize = 16.sp)
+                    Text("Назад", fontSize = 16.sp, color = Color(0xFF333333))
                 }
             }
             Spacer(Modifier.height(8.dp))

@@ -32,6 +32,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.layout.ContentScale
 
 // РЕЖИМ РАЗРАБОТЧИКА
 @Composable
@@ -40,6 +47,19 @@ fun DevScreen(
     onBack: () -> Unit
 ) {
     BackHandler { onBack() }
+
+    val context = LocalContext.current
+    var croppedBitmaps by remember { mutableStateOf<List<Bitmap?>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            val list = petOptions.map { pet ->
+                val bmp = BitmapFactory.decodeResource(context.resources, pet.images[0])
+                bmp?.let { cropToContent(it) }
+            }
+            croppedBitmaps = list
+        }
+    }
 
     var appearance by remember { mutableStateOf(storage.petAppearance) }
     var color by remember { mutableStateOf(storage.petColor) }
@@ -67,7 +87,7 @@ fun DevScreen(
                 onClick = onBack,
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text("Назад", fontSize = 16.sp)
+                Text("Назад", fontSize = 16.sp, color = Color(0xFF333333))
             }
         }
 
@@ -88,6 +108,8 @@ fun DevScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { pet ->
                             val idx = petOptions.indexOf(pet)
+                            val bmp = croppedBitmaps.getOrNull(idx)
+
                             Box(
                                 modifier = Modifier
                                     .size(70.dp)
@@ -102,11 +124,20 @@ fun DevScreen(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Image(
-                                    painter = painterResource(id = pet.images[0]),
-                                    contentDescription = pet.name,
-                                    modifier = Modifier.size(50.dp)
-                                )
+                                if (bmp != null) {
+                                    Image(
+                                        bitmap = bmp.asImageBitmap(),
+                                        contentDescription = pet.name,
+                                        modifier = Modifier.size(60.dp),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = pet.images[0]),
+                                        contentDescription = pet.name,
+                                        modifier = Modifier.size(50.dp)
+                                    )
+                                }
                             }
                         }
                     }

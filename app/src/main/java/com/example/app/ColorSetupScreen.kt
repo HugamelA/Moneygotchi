@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -30,8 +29,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ButtonDefaults
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 
-// ЭКРАН 3: КАРУСЕЛЬ ВАРИАНТОВ
+// ЭКРАН: КАРУСЕЛЬ ВАРИАНТОВ
 @Composable
 fun ColorSetupScreen(
     storage: AppStorage,
@@ -40,6 +47,8 @@ fun ColorSetupScreen(
 ) {
     BackHandler { onBack() }
 
+    val context = LocalContext.current
+
     val pagerState = rememberPagerState(
         initialPage = storage.petColor,
         pageCount = { colorNames.size }
@@ -47,12 +56,11 @@ fun ColorSetupScreen(
     val pet = petOptions.getOrElse(storage.petAppearance) { petOptions[0] }
     val currentPage = pagerState.currentPage
 
-    // Флаг: показывать ли диалог подтверждения создания
     var showConfirm by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Фон: магазин
+        //Фон
         Image(
             painter = painterResource(id = R.drawable.shop_bg),
             contentDescription = null,
@@ -60,6 +68,24 @@ fun ColorSetupScreen(
             contentScale = ContentScale.FillBounds
         )
 
+        //Карусель
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val isCurrent = (page == currentPage)
+            Image(
+                painter = painterResource(id = pet.images[page]),
+                contentDescription = colorNames[page],
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = -30.dp)
+                    .alpha(if (isCurrent) 1f else 0.55f),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        //Интерфейс
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,15 +93,13 @@ fun ColorSetupScreen(
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Верхняя панель: кнопка «Назад» + заголовок
+            // Верхняя панель
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .background(
-                        Color.White.copy(alpha = 0.92f),
-                        RoundedCornerShape(20.dp)
-                    )
+                    .height(150.dp)
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .background(Color.White.copy(alpha = 0.92f), RoundedCornerShape(20.dp))
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -83,11 +107,8 @@ fun ColorSetupScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(
-                        onClick = onBack,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text("Назад", fontSize = 16.sp)
+                    TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
+                        Text("Назад", fontSize = 16.sp, color = Color(0xFF5A9DB8))
                     }
                     Spacer(Modifier.weight(1f))
                 }
@@ -109,32 +130,7 @@ fun ColorSetupScreen(
                 )
             }
 
-            // Карусель вариантов
-            HorizontalPager(
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = 60.dp),
-                pageSpacing = 12.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) { page ->
-                val isCurrent = (page == currentPage)
-
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Image(
-                        painter = painterResource(id = pet.images[page]),
-                        contentDescription = colorNames[page],
-                        modifier = Modifier
-                            .scale(if (isCurrent) 1f else 0.8f)
-                            .alpha(if (isCurrent) 1f else 0.55f)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.weight(1f))
 
             // Название текущего варианта
             Text(
@@ -143,10 +139,7 @@ fun ColorSetupScreen(
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier
-                    .background(
-                        Color.Black.copy(alpha = 0.45f),
-                        RoundedCornerShape(12.dp)
-                    )
+                    .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             )
 
@@ -162,8 +155,7 @@ fun ColorSetupScreen(
                         modifier = Modifier
                             .size(if (idx == currentPage) 12.dp else 8.dp)
                             .background(
-                                if (idx == currentPage) Color.White
-                                else Color.White.copy(alpha = 0.5f),
+                                if (idx == currentPage) Color.White else Color.White.copy(alpha = 0.5f),
                                 RoundedCornerShape(50)
                             )
                     )
@@ -175,9 +167,10 @@ fun ColorSetupScreen(
             // Кнопка «Подтвердить»
             Button(
                 onClick = { showConfirm = true },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A9DB8)),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
                     .height(60.dp)
             ) {
                 Text("Подтвердить", fontSize = 22.sp)
@@ -210,11 +203,23 @@ fun ColorSetupScreen(
                     )
                     Spacer(Modifier.height(12.dp))
 
-                    Image(
-                        painter = painterResource(id = pet.images[currentPage]),
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp)
-                    )
+                    var croppedBitmap by remember(currentPage) { mutableStateOf<Bitmap?>(null) }
+                    LaunchedEffect(currentPage) {
+                        withContext(Dispatchers.Default) {
+                            val bmp = BitmapFactory.decodeResource(context.resources, pet.images[currentPage])
+                            croppedBitmap = bmp?.let { cropToContent(it) }
+                        }
+                    }
+
+                    croppedBitmap?.let { bmp ->
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
                     Spacer(Modifier.height(16.dp))
 
                     Text(

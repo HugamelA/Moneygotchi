@@ -169,7 +169,7 @@ fun ShopScreen(
                     Text(
                         "Назад",
                         fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF2E7D32),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }

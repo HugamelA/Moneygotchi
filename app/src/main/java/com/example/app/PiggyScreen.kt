@@ -95,7 +95,7 @@ fun PiggyScreen(
             Text(
                 "Назад",
                 fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF5D4037),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )
         }

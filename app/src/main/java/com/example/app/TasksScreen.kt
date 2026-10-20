@@ -401,7 +401,7 @@ fun TasksScreen(
             Text(
                 "Назад",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF1565C0),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
