@@ -95,7 +95,12 @@ fun GoalScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🎯", fontSize = 72.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.goal),
+                            contentDescription = "Нет цели",
+                            modifier = Modifier.size(72.dp),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "У тебя пока нет цели",

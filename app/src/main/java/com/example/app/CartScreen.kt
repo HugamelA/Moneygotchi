@@ -102,7 +102,12 @@ fun CartScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🛒", fontSize = 72.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.cart),
+                            contentDescription = "Корзина пуста",
+                            modifier = Modifier.size(72.dp),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(Modifier.height(12.dp))
                         Text(
                             "Корзина пуста",

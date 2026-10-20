@@ -282,7 +282,12 @@ fun ShopScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("📦", fontSize = 64.sp)
+                                Image(
+                                    painter = painterResource(id = R.drawable.box),
+                                    contentDescription = "Пусто",
+                                    modifier = Modifier.size(64.dp),
+                                    contentScale = ContentScale.Fit
+                                )
                                 Spacer(Modifier.height(12.dp))
                                 Text(
                                     "Скоро товары данной категории\nпоступят в продажу",
@@ -553,7 +558,12 @@ private fun ProductCard(
                             .noRippleClickable { onLockedClick() }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("🔒", fontSize = 20.sp)
+                            Image(
+                                painter = painterResource(id = R.drawable.locked),
+                                contentDescription = "Заблокировано",
+                                modifier = Modifier.size(20.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         }
                     }
                 }
@@ -666,7 +676,12 @@ private fun CartBar(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text("🛒", fontSize = 26.sp)
+            Image(
+                painter = painterResource(id = R.drawable.cart),
+                contentDescription = "Корзина",
+                modifier = Modifier.size(26.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(

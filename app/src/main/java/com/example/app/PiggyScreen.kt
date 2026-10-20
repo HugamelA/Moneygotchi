@@ -163,7 +163,12 @@ fun PiggyScreen(
                                     contentScale = ContentScale.Fit
                                 )
                             } else {
-                                Text(goalEmoji, fontSize = 52.sp)
+                                Image(
+                                    painter = painterResource(id = R.drawable.goal),
+                                    contentDescription = "Цель",
+                                    modifier = Modifier.size(52.dp),
+                                    contentScale = ContentScale.Fit
+                                )
                             }
                             Spacer(Modifier.width(10.dp))
                             Column {

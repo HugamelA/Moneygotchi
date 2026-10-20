@@ -228,7 +228,12 @@ fun TasksScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🔒", fontSize = 56.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.locked),
+                            contentDescription = "Задание заблокировано",
+                            modifier = Modifier.size(56.dp),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(Modifier.height(12.dp))
                         Text(
                             "Задание откроется через $daysLeft ${
@@ -626,7 +631,12 @@ private fun TaskOnBookPage(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (isLocked) {
-            Text("🔒", fontSize = 24.sp)
+            Image(
+                painter = painterResource(id = R.drawable.locked),
+                contentDescription = "Заблокировано",
+                modifier = Modifier.size(24.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(Modifier.height(6.dp))
         }
 

@@ -159,10 +159,10 @@ const val DEBUG_COINS_LAYOUT = false
 // Зоны страницы «Конверты»
 val COINS_NEEDS  = ZoneRect("Конверт Обязательное",   0.089f, 0.178f, 0.819f, 0.197f)
 val COINS_WANTS  = ZoneRect("Конверт Необязательное", 0.089f, 0.378f, 0.819f, 0.197f)
-val COINS_PIGGY  = ZoneRect("Копилка",                0.033f, 0.574f, 0.582f, 0.200f)
+val COINS_PIGGY  = ZoneRect("Копилка",                0.058f, 0.583f, 0.423f, 0.177f)
 val COINS_BALANCE = ZoneRect("Баланс",                0.593f, 0.779f, 0.350f, 0.119f)
 
-val PIGGY_LABEL  = ZoneRect("Надпись копилки", 0.620f, 0.622f, 0.350f, 0.119f)
+val PIGGY_LABEL  = ZoneRect("Надпись копилки", 0.563f, 0.610f, 0.350f, 0.119f)
 
 val COIN_5   = ZoneRect("Монетка 5",    0.033f, 0.779f, 0.16f, 0.07f)
 val COIN_10  = ZoneRect("Монетка 10",   0.205f, 0.779f, 0.16f, 0.07f)
