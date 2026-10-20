@@ -7,10 +7,10 @@ import android.graphics.BitmapFactory
 object PetAssets {
 
     fun colorFile(species: String, mood: String, stage: String, color: Int): String =
-        "pets/$species/pet_${species}_${mood}_${stage}_$color.png"
+        "pets/$species/pet_${species}_${mood}_${stage}_$color.webp"
 
     fun maskFile(species: String, mood: String, stage: String): String =
-        "pets/$species/mask_${species}_${mood}_${stage}.png"
+        "pets/$species/mask_${species}_${mood}_${stage}.webp"
 
     // Путь для Coil. Если цветной нет — путь к маске. Если и её нет — null.
     fun petImageAssetPath(

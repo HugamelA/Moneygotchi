@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -29,10 +28,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 
 // ЭКРАН СОЗДАНИя ПИТОМЦА
 @Composable
@@ -76,7 +71,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
                     .fillMaxSize()
                     .offset(y = -30.dp)
                     .alpha(if (isCurrent) 1f else 0.55f),
-                contentScale = ContentScale.FillBounds // Идеально совпадает с главным экраном
+                contentScale = ContentScale.FillBounds
             )
         }
 
