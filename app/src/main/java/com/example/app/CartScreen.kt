@@ -49,6 +49,9 @@ fun CartScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        SoundManager.playBgm(context, R.raw.bgm_shop)
+    }
     remember { ShopCatalog.load(context); 0 }
 
     var cart by remember { mutableStateOf(storage.getCart()) }
@@ -78,7 +81,10 @@ fun CartScreen(
                     shadowElevation = 2.dp,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .noRipple { onBack() }
+                        .noRipple {
+                            SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                            onBack()
+                        }
                 ) {
                     Text(
                         "Назад",
@@ -180,7 +186,10 @@ fun CartScreen(
                 title = { Text("Недостаточно средств") },
                 text = { Text(errMsg) },
                 confirmButton = {
-                    TextButton(onClick = { errorMessage = null }) { Text("Понятно") }
+                    TextButton(onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                        errorMessage = null
+                    }) { Text("Понятно") }
                 }
             )
         }
@@ -197,6 +206,7 @@ fun CartScreen(
                 text = { Text(okMsg) },
                 confirmButton = {
                     TextButton(onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                         successMessage = null
                         onBack()
                     }) { Text("Отлично") }
@@ -309,7 +319,10 @@ private fun CartItemCard(
                     color = Color(0xFFC8E6C9),
                     modifier = Modifier
                         .size(36.dp)
-                        .noRipple { onChangeQuantity(quantity - 1) }
+                        .noRipple {
+                            SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                            onChangeQuantity(quantity - 1)
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
@@ -332,7 +345,10 @@ private fun CartItemCard(
                     color = Color(0xFFC8E6C9),
                     modifier = Modifier
                         .size(36.dp)
-                        .noRipple { onChangeQuantity(quantity + 1) }
+                        .noRipple {
+                            SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                            onChangeQuantity(quantity + 1)
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
@@ -474,7 +490,14 @@ private fun CartSummaryBar(
                 shadowElevation = if (enough) 2.dp else 0.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .noRipple { if (enough) onCheckout() }
+                    .noRipple {
+                        if (enough) {
+                            SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                            onCheckout()
+                        } else {
+                            SoundManager.playSfx(R.raw.sfx_ui_error)
+                        }
+                    }
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -583,6 +606,7 @@ private fun CheckoutDialog(
                             }
 
                             onSuccess("Куплено на $totalCost ${coinsWord(totalCost)}.")
+                            SoundManager.playSfx(R.raw.sfx_ui_coin)
                         }
                     }
                 }
@@ -591,9 +615,10 @@ private fun CheckoutDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                onDismiss()
+            }) { Text("Отмена") }
         }
     )
 }

@@ -168,6 +168,7 @@ internal fun RoomSceneLayer(
                             if (showTutorial) return@detectTapGestures
                             val mask = petMask ?: return@detectTapGestures
                             if (isPixelOpaque(mask, tapOffset, size)) {
+                                SoundManager.playSfx(SoundManager.getPetSoundResId(storage.petAppearance, storage.happiness))
                                 onPetMenuOpen()
                             }
                         }
@@ -197,10 +198,18 @@ internal fun RoomSceneLayer(
                 "Компьютер"          -> onShopClick
                 "Ящик с конвертами"  -> onCoinsClick
                 "Банка"              -> onPiggyClick
-                "Кровать"            -> onShowSleepConfirm
+                "Кровать"            -> {
+                    onShowSleepConfirm
+                }
                 "Полка с книгами"    -> onTasksClick
-                "Консоль"            -> onConsoleGameClick
-                "Телескоп"           -> onTelescopeClick
+                "Консоль"            -> {
+                    SoundManager.stopBgm()
+                    onConsoleGameClick
+                }
+                "Телескоп"           -> {
+                    SoundManager.stopBgm()
+                    onTelescopeClick
+                }
                 else                 -> ({})
             }
 
@@ -208,7 +217,9 @@ internal fun RoomSceneLayer(
                     (zone.name == "Полка с книгами" && hasNewTask)
 
             val wrappedAction: () -> Unit = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
                 storage.markZoneSeen(zone.name)
+
 
                 if (zone.name == "Полка с книгами") {
                     val maxUnlock = allTasks

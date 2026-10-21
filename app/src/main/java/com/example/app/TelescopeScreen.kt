@@ -38,6 +38,9 @@ private const val IMAGE_SIZE_MULTIPLIER = 1.5f
 
 @Composable
 fun TelescopeScreen(onBack: () -> Unit) {
+    LaunchedEffect(Unit) {
+        SoundManager.stopBgm()
+    }
 
     var sizePx by remember { mutableStateOf(IntSize.Zero) }
     var offsetX by remember { mutableFloatStateOf(0f) }
@@ -95,7 +98,10 @@ fun TelescopeScreen(onBack: () -> Unit) {
                 .align(Alignment.BottomStart)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
-                .clickable { onBack() }
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onBack()
+                }
         ) {
             Text(
                 "Выйти",

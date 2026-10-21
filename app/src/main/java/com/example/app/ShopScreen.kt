@@ -101,6 +101,9 @@ fun ShopScreen(
     val petGenitive = currentPetTypeGenitive(storage.petAppearance)
     // Загрузка каталог
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        SoundManager.playBgm(context, R.raw.bgm_shop)
+    }
     remember { ShopCatalog.load(context); 0 }
 
     val specialsSorted = remember {
@@ -164,7 +167,10 @@ fun ShopScreen(
                     shadowElevation = 2.dp,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .noRippleClickable { onBack() }
+                        .noRippleClickable {
+                            SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                            onBack()
+                        }
                 ) {
                     Text(
                         "Назад",
@@ -201,6 +207,7 @@ fun ShopScreen(
                                 chipPositions[index] = coords.positionInParent().x.toInt()
                             }
                             .noRippleClickable {
+                                SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                                 scope.launch {
                                     pagerState.animateScrollToPage(index)
                                 }
@@ -314,6 +321,7 @@ fun ShopScreen(
                                     locked = locked,
                                     storage = storage,
                                     onAdd = {
+                                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                                         val current = cart[product.id] ?: 0
                                         val maxQty = if (product.categoryId == "special") 1 else 99
                                         val newQty = (current + 1).coerceAtMost(maxQty)
@@ -321,6 +329,7 @@ fun ShopScreen(
                                         storage.setCartQuantity(product.id, newQty)
                                     },
                                     onRemove = {
+                                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                                         val current = cart[product.id] ?: 0
                                         val newQty = (current - 1).coerceAtLeast(0)
                                         val newCart = cart.toMutableMap()
@@ -330,9 +339,14 @@ fun ShopScreen(
                                         storage.setCartQuantity(product.id, newQty)
                                     },
                                     onLockedClick = {
+                                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                                         lockedMessage = "Сначала купи предыдущие особые товары."
                                     },
-                                    onSetGoal = { goalConfirmProduct = product }
+                                    onSetGoal = {
+                                        SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                                        goalConfirmProduct = product
+                                    }
+
                                 )
                             }
                         }
@@ -357,7 +371,10 @@ fun ShopScreen(
             title = { Text("Закрыто") },
             text = { Text(lockMsg) },
             confirmButton = {
-                TextButton(onClick = { lockedMessage = null }) { Text("Понятно") }
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                    lockedMessage = null
+                }) { Text("Понятно") }
             }
         )
     }
@@ -382,6 +399,7 @@ fun ShopScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_shop_click)
                     storage.goalName = displayName
                     storage.goalPrice = confirmProduct.price
                     storage.goalStartDay = storage.daysWithPet
@@ -668,7 +686,10 @@ private fun CartBar(
         shadowElevation = 6.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .noRippleClickable { onClick() }
+            .noRippleClickable {
+                SoundManager.playSfx(R.raw.sfx_ui_shop_click)
+                onClick()
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

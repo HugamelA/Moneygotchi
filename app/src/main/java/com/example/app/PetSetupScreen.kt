@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 
 // ЭКРАН СОЗДАНИя ПИТОМЦА
 @Composable
@@ -79,7 +81,11 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+                    )
+                )
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -172,6 +178,7 @@ fun PetSetupScreen(storage: AppStorage, onDone: () -> Unit) {
             Button(
                 enabled = isNameValid,
                 onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     storage.petName = trimmedName
                     storage.petAppearance = pagerState.currentPage
                     onDone()

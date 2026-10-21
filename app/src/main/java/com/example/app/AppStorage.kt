@@ -550,6 +550,15 @@ class AppStorage(context: Context) {
         get() = _allDoneShown.value
         set(v) { _allDoneShown.value = v; saveBool("all_done_shown", v) }
 
+    // Настройки звука
+    var musicVolume: Float
+        get() = prefs.getFloat("music_volume", 0.4f)
+        set(value) = prefs.edit().putFloat("music_volume", value).apply()
+
+    var sfxVolume: Float
+        get() = prefs.getFloat("sfx_volume", 0.7f)
+        set(value) = prefs.edit().putFloat("sfx_volume", value).apply()
+
     //  СБРОС
     fun reset() {
         prefs.edit().clear().apply()

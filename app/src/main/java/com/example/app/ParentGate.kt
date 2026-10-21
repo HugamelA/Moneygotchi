@@ -100,12 +100,19 @@ fun ParentGate(
             }
         },
         confirmButton = {
-            TextButton(onClick = { submit() }) {
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                submit()
+            }) {
                 Text("Продолжить")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onDismiss()
+                }) {
                 Text("Отмена")
             }
         }

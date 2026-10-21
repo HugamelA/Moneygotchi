@@ -166,7 +166,10 @@ fun ColorSetupScreen(
 
             // Кнопка «Подтвердить»
             Button(
-                onClick = { showConfirm = true },
+                onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showConfirm = true
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A9DB8)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -247,6 +250,7 @@ fun ColorSetupScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
                         showConfirm = false
                         storage.petColor = pagerState.currentPage
                         storage.isPetCreated = true
@@ -257,7 +261,10 @@ fun ColorSetupScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showConfirm = false
+                }) {
                     Text("Отмена")
                 }
             }

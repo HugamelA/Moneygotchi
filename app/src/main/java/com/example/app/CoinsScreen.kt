@@ -100,7 +100,10 @@ fun CoinsScreen(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
-                    ) { onBack() },
+                    ) {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                        onBack()
+                      },
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White
             ) {

@@ -34,6 +34,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import kotlinx.coroutines.flow.drop
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 
 private fun isCorrectVerdict(verdict: String): Boolean = verdict == "recommended"
 
@@ -63,7 +66,9 @@ fun TasksScreen(
 
     if (allTasks.isEmpty()) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -74,7 +79,10 @@ fun TasksScreen(
                 fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onBack) { Text("Назад") }
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onBack()
+            }) { Text("Назад") }
         }
         return
     }
@@ -95,8 +103,14 @@ fun TasksScreen(
     var version by remember { mutableStateOf(0) }
     var resultDialog by remember { mutableStateOf<TaskResult?>(null) }
 
-    LaunchedEffect(pagerState.currentPage) {
-        selectedTaskId = null
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .drop(1)
+            .collect { _ ->
+                SoundManager.playSfx(R.raw.sfx_ui_book_leafing)
+                selectedTaskId = null
+            }
     }
 
     val selectedTask = selectedTaskId?.let { id ->
@@ -159,6 +173,15 @@ fun TasksScreen(
                             isLocked = isLocked,
                             displayTitle = sub(task.title),
                             onClick = {
+                                val isDeselecting = (selectedTaskId == task.id)
+
+                                if (!isDeselecting) {
+                                    if (isLocked) {
+                                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                                    } else {
+                                        SoundManager.playSfx(R.raw.sfx_ui_pen)
+                                    }
+                                }
                                 selectedTaskId =
                                     if (selectedTaskId == task.id) null else task.id
                             }
@@ -187,6 +210,15 @@ fun TasksScreen(
                             isLocked = isLocked,
                             displayTitle = sub(task.title),
                             onClick = {
+                                val isDeselecting = (selectedTaskId == task.id)
+
+                                if (!isDeselecting) {
+                                    if (isLocked) {
+                                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                                    } else {
+                                        SoundManager.playSfx(R.raw.sfx_ui_pen)
+                                    }
+                                }
                                 selectedTaskId =
                                     if (selectedTaskId == task.id) null else task.id
                             }
@@ -214,7 +246,7 @@ fun TasksScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Нажми на задание,\nчтобы увидеть ответ",
+                        "Нажми на задание,\nчтобы увидеть ответы",
                         fontSize = 16.sp,
                         color = Color(0xFF8A8A8A),
                         textAlign = TextAlign.Center,
@@ -306,6 +338,8 @@ fun TasksScreen(
                                             isRevealedCorrect = isRevealedCorrect,
                                             isLocked = (confirmedId != null),
                                             onClick = {
+                                                SoundManager.playSfx(R.raw.sfx_ui_tap)
+
                                                 if (confirmedId == null) {
                                                     pendingOptions[selectedTask.id] =
                                                         option.id
@@ -339,6 +373,8 @@ fun TasksScreen(
                                         .firstOrNull { it.id == pending }
                                         ?: return@Button
                                     val correct = isCorrectVerdict(chosenOption.verdict)
+
+                                    SoundManager.playSfx(R.raw.sfx_ui_tap)
 
                                     val firstAnswer =
                                         storage.getChosenOption(selectedTask.id) == null
@@ -375,9 +411,17 @@ fun TasksScreen(
                                         isCorrect = correct
                                     )
 
+                                    if (correct) {
+                                        SoundManager.playSfx(R.raw.sfx_ui_success)
+                                    } else {
+                                        SoundManager.playSfx(R.raw.sfx_ui_error)
+                                    }
+
                                     version++
                                 },
-                                modifier = Modifier.fillMaxWidth().height(48.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
                             ) {
                                 Text("Ответить", fontSize = 16.sp)
                             }
@@ -398,7 +442,10 @@ fun TasksScreen(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { onBack() },
+                ) {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onBack()
+                },
             shape = RoundedCornerShape(20.dp),
             color = Color.White,
             border = BorderStroke(2.dp, Color.White)
@@ -586,7 +633,10 @@ private fun ResultDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onDismiss()
+            }) {
                 Text("Понятно", fontSize = 16.sp)
             }
         }
@@ -625,7 +675,9 @@ private fun TaskOnBookPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { onClick() }
+            .pointerInput(Unit) {
+                detectTapGestures { onClick() }
+            }
             .padding(14.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

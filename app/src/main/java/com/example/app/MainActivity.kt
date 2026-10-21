@@ -14,11 +14,28 @@ import androidx.compose.material3.MaterialTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        SoundManager.init(this)
+
+        val storage = AppStorage(this)
+        SoundManager.musicVolume = storage.musicVolume
+        SoundManager.sfxVolume = storage.sfxVolume
+
         setContent {
             MaterialTheme {
                 AppRoot()
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SoundManager.pauseBgm()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        SoundManager.resumeBgm()
     }
 }
 
@@ -104,6 +121,7 @@ fun AppRoot() {
         "settings" -> SettingsScreen(
             storage = storage,
             onBack = { screen = "main" },
+            onOpenSoundSettings = { screen = "sound_settings" },
             onPetDeleted = {
                 tutorialActive = storage.tutorialActive
                 tutorialCanSkip = false
@@ -118,6 +136,11 @@ fun AppRoot() {
             },
             onOpenDev = { screen = "dev" },
             onOpenParent = { screen = "parent" }
+        )
+
+        "sound_settings" -> SoundSettingsScreen(
+            storage = storage,
+            onBack = { screen = "settings" }
         )
 
         "telescope" -> TelescopeScreen(

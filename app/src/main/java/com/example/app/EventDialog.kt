@@ -99,6 +99,7 @@ fun EventDialog(
                                 enabled = enabled,
                                 verdict = opt.verdict,
                                 onClick = {
+                                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                                     chosenOption = opt
                                     resolved = true
                                 }
@@ -135,12 +136,14 @@ fun EventDialog(
                 when {
                     showFallback -> {
                         EventActionButton("Хорошо") {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
                             onFinish()
                         }
                     }
 
                     event.options != null && resolved -> {
                         EventActionButton("Продолжить") {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
                             chosenOption?.let {
                                 EventEngine.applyEffects(storage, it.effects)
                             }
@@ -150,6 +153,7 @@ fun EventDialog(
 
                     event.options == null -> {
                         EventActionButton("Хорошо") {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
                             EventEngine.applyEffects(storage, event.effects)
                             onFinish()
                         }
@@ -184,7 +188,10 @@ private fun EventOptionButton(
                 enabled = enabled,
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick
+                onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onClick()
+                }
             )
     ) {
         Box(
@@ -207,7 +214,10 @@ private fun EventActionButton(
     onClick: () -> Unit
 ) {
     Button(
-        onClick = onClick,
+        onClick = {
+            SoundManager.playSfx(R.raw.sfx_ui_tap)
+            onClick()
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),

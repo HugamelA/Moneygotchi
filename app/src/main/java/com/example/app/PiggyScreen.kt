@@ -90,7 +90,10 @@ fun PiggyScreen(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { onBack() }
+                ) {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onBack()
+                }
         ) {
             Text(
                 "Назад",
@@ -222,7 +225,10 @@ fun PiggyScreen(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { showPurchaseConfirm = true }
+                            ) {
+                                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                                showPurchaseConfirm = true
+                            }
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,

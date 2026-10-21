@@ -54,7 +54,10 @@ fun ParentScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    onClick = onBack,
+                    onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                        onBack()
+                    },
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text("Назад", fontSize = 16.sp, color = Color(0xFF333333))
@@ -121,7 +124,10 @@ fun ParentScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showBonusDialog = true }
+                    .clickable {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                        showBonusDialog = true
+                    }
             ) {
                 Row(
                     modifier = Modifier
@@ -143,19 +149,8 @@ fun ParentScreen(
                             color = Color(0xFF888888)
                         )
                     }
-                    Text("→", fontSize = 20.sp, color = Color(0xFF888888))
                 }
             }
-
-            Spacer(Modifier.height(20.dp))
-
-            // Скрытый dev-вход
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clickable { onOpenDev() }
-            )
 
             Spacer(Modifier.height(20.dp))
         }
@@ -244,6 +239,7 @@ private fun BonusDialog(
             TextButton(
                 enabled = valid,
                 onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     storage.addParentBonus(amount)
                     onDismiss()
                 }
@@ -252,7 +248,10 @@ private fun BonusDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onDismiss()
+            }) { Text("Отмена") }
         }
     )
 }

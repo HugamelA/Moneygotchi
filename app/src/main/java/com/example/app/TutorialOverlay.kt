@@ -332,7 +332,10 @@ fun TutorialOverlay(
             ) {
                 if (canSkip && !isLast) {
                     OutlinedButton(
-                        onClick = { showSkipConfirm = true },
+                        onClick = {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
+                            showSkipConfirm = true
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(52.dp),
@@ -346,6 +349,7 @@ fun TutorialOverlay(
                 }
                 Button(
                     onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
                         current.onLeave?.invoke()
                         if (isLast) {
                             storage.tutorialShown = true
@@ -375,7 +379,10 @@ fun TutorialOverlay(
     // Подтверждение пропуска
     if (showSkipConfirm) {
         AlertDialog(
-            onDismissRequest = { showSkipConfirm = false },
+            onDismissRequest = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                showSkipConfirm = false
+            },
             title = {
                 Text(
                     "Пропустить обучение?",
@@ -394,6 +401,7 @@ fun TutorialOverlay(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     showSkipConfirm = false
                     storage.tutorialShown = true
                     storage.tutorialActive = false
@@ -404,7 +412,10 @@ fun TutorialOverlay(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSkipConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showSkipConfirm = false
+                }) {
                     Text("Продолжить")
                 }
             }

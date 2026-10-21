@@ -70,7 +70,10 @@ fun GoalScreen(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { onBack() }
+                        ) {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
+                            onBack()
+                        }
                 ) {
                     Text(
                         "Назад",
@@ -198,7 +201,7 @@ fun GoalScreen(
 
                             if (reached) {
                                 Text(
-                                    "🎉 Цель достигнута!",
+                                    "Цель достигнута!",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4CAF50),
@@ -236,7 +239,10 @@ fun GoalScreen(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { showCancelConfirm = true }
+                            ) {
+                                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                                showCancelConfirm = true
+                            }
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -260,7 +266,10 @@ fun GoalScreen(
     // Подтверждение отмены
     if (showCancelConfirm) {
         AlertDialog(
-            onDismissRequest = { showCancelConfirm = false },
+            onDismissRequest = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                showCancelConfirm = false
+            },
             title = { Text("Отменить цель?") },
             text = {
                 Text(
@@ -270,6 +279,7 @@ fun GoalScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     showCancelConfirm = false
                     storage.clearGoal()
                     goalName = ""
@@ -279,7 +289,10 @@ fun GoalScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showCancelConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showCancelConfirm = false
+                }) {
                     Text("Оставить")
                 }
             }

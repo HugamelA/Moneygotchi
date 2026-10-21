@@ -51,6 +51,9 @@ fun MainScreen(
     }
 
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        SoundManager.playBgm(context, R.raw.bgm_main)
+    }
 
     remember { ShopCatalog.load(context); 0 }
     remember { EventData.load(context); 0 }
@@ -165,6 +168,7 @@ fun MainScreen(
                     sleepTextVisible = false
                     delay(600)
                     isSleeping = false
+                    SoundManager.playBgm(context, R.raw.bgm_main)
 
                     // Показать событие, если оно есть
                     if (storage.pendingEventId.isNotEmpty()) {
@@ -249,6 +253,7 @@ fun MainScreen(
             text = { Text("Прогресс сохранится, вы сможете продолжить позже.") },
             confirmButton = {
                 TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     showExitConfirm = false
                     (context as? android.app.Activity)?.finish()
                 }) {
@@ -256,7 +261,10 @@ fun MainScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showExitConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showExitConfirm = false
+                }) {
                     Text("Остаться")
                 }
             }
@@ -271,6 +279,7 @@ fun MainScreen(
             onToggleMoveLeftovers = { moveLeftoversToPiggy = !moveLeftoversToPiggy },
             onDismiss = { showSleepConfirm = false },
             onConfirm = {
+                SoundManager.stopBgm()
                 showSleepConfirm = false
                 scope.launch {
                     // Флаги за день

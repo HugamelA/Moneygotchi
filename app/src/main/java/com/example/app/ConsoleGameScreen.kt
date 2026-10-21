@@ -168,6 +168,10 @@ fun ConsoleGameScreen(
     storage: AppStorage,
     onBack: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        SoundManager.stopBgm()
+    }
+
     var sizePx by remember { mutableStateOf(IntSize.Zero) }
     var frameTick by remember { mutableLongStateOf(0L) }
     var hudScore by remember { mutableIntStateOf(0) }
@@ -353,7 +357,7 @@ fun ConsoleGameScreen(
             // Правая колонка — HP + баффы (баффы СТРОГО под HP)
             Column(horizontalAlignment = Alignment.End) {
 
-                // ─── HP-параллелограммы ───
+                // HP
                 Row {
                     val isShielded = (gameState?.shieldTimer ?: 0f) > 0f
 
@@ -386,7 +390,7 @@ fun ConsoleGameScreen(
                     }
                 }
 
-                // ─── Баффы под HP ───
+                // Баффы под HP
                 Spacer(Modifier.height(8.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -445,7 +449,10 @@ fun ConsoleGameScreen(
                 .align(Alignment.BottomStart)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp)
-                .clickable { onBack() }
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onBack()
+                }
         ) {
             Text(
                 "Выйти",

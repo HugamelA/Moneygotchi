@@ -50,8 +50,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.platform.LocalContext
 
 
 // HUD И ПОДСКАЗКИ
@@ -142,14 +144,23 @@ internal fun BoxScope.MainHud(
                     saved = storage.piggyBalance,
                     price = storage.goalPrice,
                     onClick = {
-                        if (!showTutorial || tutorialFocusZone == "Цель") onGoalClick()
+                        if (!showTutorial || tutorialFocusZone == "Цель") {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
+                            onGoalClick()
+                        }
                     }
                 )
             }
         }
 
         IconButton(
-            onClick = { if (!showTutorial) onSettingsClick() },
+            onClick = {
+                if (!showTutorial) {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    SoundManager.stopBgm()
+                    onSettingsClick()
+                }
+            },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .onGloballyPositioned {
@@ -263,7 +274,7 @@ internal fun SleepOverlayLayer(
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = sleepAlpha))
                 .pointerInput(Unit) {
-                    detectTapGestures {  }
+                    detectTapGestures { }
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -316,7 +327,10 @@ internal fun SleepOverlayLayer(
                 if (sleepShowContinue) {
                     Spacer(Modifier.height(32.dp))
                     Button(
-                        onClick = onContinue,
+                        onClick = {
+                            SoundManager.playSfx(R.raw.sfx_ui_tap)
+                            onContinue()
+                        },
                         modifier = Modifier
                             .fillMaxWidth(0.6f)
                             .height(56.dp)
@@ -365,7 +379,10 @@ internal fun SleepConfirmDialog(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { onToggleMoveLeftovers() }
+                            ) {
+                                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                                onToggleMoveLeftovers()
+                            }
                     ) {
                         Checkbox(
                             checked = moveLeftoversToPiggy,
@@ -395,12 +412,18 @@ internal fun SleepConfirmDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onConfirm()
+            }) {
                 Text("Закончить день")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onDismiss()
+            }) {
                 Text("Остаться")
             }
         }

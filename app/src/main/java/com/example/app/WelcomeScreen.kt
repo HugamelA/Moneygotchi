@@ -15,10 +15,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
 
 // ЭКРАН ПРИВЕТСТВИЯ
 @Composable
 fun WelcomeScreen(onStart: () -> Unit) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        SoundManager.playBgm(context,R.raw.bgm_pet_setup)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -37,7 +44,10 @@ fun WelcomeScreen(onStart: () -> Unit) {
         )
         Spacer(Modifier.height(48.dp))
         Button(
-            onClick = onStart,
+            onClick = {
+                SoundManager.playSfx(R.raw.sfx_ui_tap)
+                onStart()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),

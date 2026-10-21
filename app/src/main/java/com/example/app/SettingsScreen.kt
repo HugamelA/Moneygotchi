@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.LaunchedEffect
 
 private const val DEBUG_DEV_BUTTON_ALWAYS_ON = false
 
@@ -34,11 +35,16 @@ private const val DEBUG_DEV_BUTTON_ALWAYS_ON = false
 fun SettingsScreen(
     storage: AppStorage,
     onBack: () -> Unit,
+    onOpenSoundSettings: () -> Unit,
     onPetDeleted: () -> Unit,
     onRepeatTutorial: () -> Unit,
     onOpenDev: () -> Unit,
     onOpenParent: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        SoundManager.stopBgm()
+    }
+
     var showConfirm by remember { mutableStateOf(false) }
     var devTaps by remember { mutableIntStateOf(0) }
     var showParentGate by remember { mutableStateOf(false) }
@@ -57,7 +63,10 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(
-                onClick = onBack,
+                onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onBack()
+                },
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text("Назад", fontSize = 16.sp, color = Color(0xFF333333))
@@ -69,11 +78,37 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(32.dp))
 
+        // Настройки звука
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onOpenSoundSettings()
+                }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("🔊", fontSize = 22.sp)
+                Spacer(Modifier.width(12.dp))
+                Text("Настройки звука", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
         // Повторить обучение
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onRepeatTutorial() }
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    onRepeatTutorial()
+                }
         ) {
             Row(
                 modifier = Modifier
@@ -97,7 +132,10 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showParentGate = true }
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showParentGate = true
+                }
         ) {
             Row(
                 modifier = Modifier
@@ -121,7 +159,10 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showConfirm = true }
+                .clickable {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showConfirm = true
+                }
         ) {
             Row(
                 modifier = Modifier
@@ -147,7 +188,10 @@ fun SettingsScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onOpenDev() }
+                    .clickable {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                        onOpenDev()
+                    }
             ) {
                 Row(
                     modifier = Modifier
@@ -201,6 +245,7 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
                         showConfirm = false
                         storage.reset()
                         onPetDeleted()
@@ -213,7 +258,10 @@ fun SettingsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showConfirm = false
+                }) {
                     Text("Отмена")
                 }
             }
