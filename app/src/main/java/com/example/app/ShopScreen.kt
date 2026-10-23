@@ -106,6 +106,8 @@ fun ShopScreen(
     }
     remember { ShopCatalog.load(context); 0 }
 
+    var goalRefresh by remember { mutableIntStateOf(0) }
+
     val specialsSorted = remember {
         ShopCatalog.products
             .filter { it.categoryId == "special" }
@@ -238,14 +240,22 @@ fun ShopScreen(
             ) { page ->
                 val categoryId = categoryList.getOrNull(page)?.id ?: ""
 
-                val productsInCategory = remember(categoryId, cart) {
+                val productsInCategory = remember(
+                    categoryId,
+                    cart,
+                    goalRefresh,
+                    storage.goalName,
+                    storage.goalPrice
+                ) {
                     val allInCategory = productsByCategory[categoryId].orEmpty()
+
                     if (categoryId == "special") {
                         allInCategory.filter { product ->
-                            val inInventory = (inventorySnapshot[product.id] ?: 0) > 0
+                            val inInventory = (storage.getInventory()[product.id] ?: 0) > 0
                             val isCurrentGoal =
-                                goalNameSnapshot == product.displayName(petGenitive) &&
-                                        goalPriceSnapshot == product.price
+                                storage.goalName == product.displayName(petGenitive) &&
+                                        storage.goalPrice == product.price
+
                             !inInventory && !isCurrentGoal
                         }
                     } else {
@@ -403,6 +413,9 @@ fun ShopScreen(
                     storage.goalName = displayName
                     storage.goalPrice = confirmProduct.price
                     storage.goalStartDay = storage.daysWithPet
+
+                    goalRefresh++
+
                     goalConfirmProduct = null
                     goalMessage = "Цель создана! Копи на товар «$displayName»."
                 }) { Text("Да, создать") }

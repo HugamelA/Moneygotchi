@@ -78,7 +78,7 @@ fun PiggyScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Кнопка «Назад»
+        // Кнопка Назад
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = Color.White,
@@ -270,6 +270,7 @@ fun PiggyScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
                     showPurchaseConfirm = false
 
                     val productId = goalProduct?.id
@@ -305,7 +306,10 @@ fun PiggyScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPurchaseConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showPurchaseConfirm = false
+                }) {
                     Text("Отмена")
                 }
             }
@@ -318,7 +322,10 @@ fun PiggyScreen(
             title = { Text("Покупка совершена!") },
             text = { Text(purchasedMessage) },
             confirmButton = {
-                TextButton(onClick = { showPurchaseSuccess = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showPurchaseSuccess = false
+                }) {
                     Text("Отлично")
                 }
             }
@@ -357,7 +364,10 @@ fun PiggyScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { showAllGoalsDone = false },
+                    onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
+                        showAllGoalsDone = false
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF4CAF50)
                     ),
@@ -373,6 +383,7 @@ fun PiggyScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
                         showAllGoalsDone = false
                         showRestartConfirm = true
                     }
@@ -403,6 +414,7 @@ fun PiggyScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        SoundManager.playSfx(R.raw.sfx_ui_tap)
                         showRestartConfirm = false
                         onRestart()
                     }
@@ -411,7 +423,10 @@ fun PiggyScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRestartConfirm = false }) {
+                TextButton(onClick = {
+                    SoundManager.playSfx(R.raw.sfx_ui_tap)
+                    showRestartConfirm = false
+                }) {
                     Text("Отмена")
                 }
             }
